@@ -21,10 +21,7 @@ public class JSON_Interpreter {
     }
 
     public Tinder_Object updateTinder(String json) throws Exception{
-        String meme = readFile("C:/Users/Simen/Desktop/MYJSON.txt", StandardCharsets.ISO_8859_1);
-        System.out.println(meme);
-
-        JSONObject updates = new JSONObject(meme);
+        JSONObject updates = new JSONObject(json);
         JSONArray matches = updates.getJSONArray("matches");
 
         for(int i = 0; i < matches.length(); i++){
