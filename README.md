@@ -48,5 +48,8 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 `🔥 supply auth_token <facebook auth_token>`<br />
 *facebook oauth2 token for tinder, you can find get your token <a href="http://www.google.com">HERE</a> (look for XXXXX)*
 
+~~`🔥 add match <tinder id>`~~<br />
+
+
 
 ## THIS IS A WORK IN PROGRESS
