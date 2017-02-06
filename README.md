@@ -36,7 +36,7 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 
 ### Commandlist (🔥 command <required argument> [multiple | choice | argument] [optional argument] ###
 
-`@Tindava create channel <channel name> <bot name in channel> <bot avatar url in channel>`
+`🔥 create channel <channel name> <bot name in channel> <bot avatar url in channel>`
 
 
 ## THIS IS A WORK IN PROGRESS
