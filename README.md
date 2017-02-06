@@ -21,6 +21,7 @@ task fatJar(type: Jar) {
     with jar
 }
 ```
+https://www.mkyong.com/gradle/gradle-create-a-jar-file-with-dependencies/
 Then run `gradle fatJar`
 
 # Args[]
