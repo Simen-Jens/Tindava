@@ -53,7 +53,10 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 ~~*calls the method for adding a match with specified id, will NOT actually make you a match*~~
 
 `🔥 request update <full json data>`<br />
-*will read the given json data (see <a href="#data-format">data format</a> for more info) and create messages / matches appropriately*
+*will read the given json data (see <a href="#json-data-format">json data format</a> for more info) and create messages / matches appropriately*
+
+
+# JSON data format
 
 
 ## THIS IS A WORK IN PROGRESS
