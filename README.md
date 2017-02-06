@@ -53,10 +53,15 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 ~~*calls the method for adding a match with specified id, will NOT actually make you a match*~~
 
 `🔥 request update <full json data>`<br />
-*will read the given json data (see <a href="#json-data-format">json data format</a> for more info) and create messages / matches appropriately*
+*will read the given json data (see <a href="#JSON-data-format">json data format</a> for more info) and create messages / matches appropriately*
 
 
 # JSON data format
+The tinder JSON format will look something like this
+```JSON
+```
+
+For more information check out <a href="https://gist.github.com/rtt/10403467">Tinder API documentation</a> by <a href="https://gist.github.com/rtt">Rich T</a>.
 
 
 ## THIS IS A WORK IN PROGRESS
