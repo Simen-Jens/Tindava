@@ -9,7 +9,7 @@ Tinder bot controlled through a Discord server
 
 # Compile with gradle
 In you `build.gradle` add
-```gradle
+```groovy
 task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Gradle Jar File Example',
@@ -21,5 +21,6 @@ task fatJar(type: Jar) {
     with jar
 }
 ```
+Then run `gradle fatJar`
 
 WIP
