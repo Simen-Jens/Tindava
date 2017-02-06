@@ -23,4 +23,9 @@ task fatJar(type: Jar) {
 ```
 Then run `gradle fatJar`
 
+# Args[]
+Supply Tindava with your BOT token from Discord (`args[0] = <token>`)
+
+Example `java -jar Tindava.jar Mjc3NTuJiKKW9AWNDM3MzEy.C3lt9g.RbGELaaW9AfMflBl4VcIYNJ_Yt`
+
 WIP
