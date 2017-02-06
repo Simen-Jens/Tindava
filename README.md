@@ -51,5 +51,8 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 ~~`🔥 add match <tinder id>`~~<br />
 ~~*calls the method for adding a match with specified id, will NOT actually make you a match*~~
 
+`🔥 request update <full json data>`<br />
+*will read the given json data (see #data format# for more info) and create messages / matches appropriately*
+
 
 ## THIS IS A WORK IN PROGRESS
