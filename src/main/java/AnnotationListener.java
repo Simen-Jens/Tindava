@@ -25,7 +25,7 @@ public class AnnotationListener extends Main {
             IUser ourUser = client.getOurUser();// Gets the user represented by the client
             String name = ourUser.getName();// Gets the name of our user
             System.out.println("Logged in as " + name);
-            client.changeStatus(Status.game("with 0 matches"));
+            client.changeStatus(Status.game("with " + (client.getGuilds().get(0).getChannels().size()-2) + " matches"));
             cmd.initDone();
         }
 

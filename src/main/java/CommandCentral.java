@@ -1,4 +1,4 @@
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.obj.Embed;
@@ -18,14 +18,15 @@ import static java.lang.Thread.sleep;
 public class CommandCentral extends Main{
     private String fb_id;
     private String fb_token;
+    private JSON_Interpreter interp;
     private Tinder_Object tndr;
 
     public void initDone(){
         tndr = new Tinder_Object(this, client.getGuilds().get(0));
+        interp = new JSON_Interpreter("", tndr);
     }
 
     public void interp(MessageReceivedEvent event) throws Exception{
-        System.out.println(event.getMessage().getContent());
         String[] message = event.getMessage().getContent().split(" ");
         if(message[0].equals("<@277597781399437312>") || message[0].equals("\uD83D\uDD25")){
             if(message[1].equals("create") && message[2].equals("channel")){
@@ -62,7 +63,17 @@ public class CommandCentral extends Main{
                     cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <matchID>", event.getMessage().getChannel(), false, false);
                     return;
                 }
-                tndr.addMatch(message[3]);
+                //tndr.addMatch(message[3]);
+            } else if(message[1].equals("request") && message[2].equals("update")){
+                if(message.length != 4){
+                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <json>", event.getMessage().getChannel(), false, false);
+                    return;
+                }
+                interp.updateTinder(message[3]);
+            } else if(message[1].equals("remove") && message[2].equals("chats")){
+                for(int i = 2; i < event.getMessage().getGuild().getChannels().size(); i++){
+                    event.getMessage().getGuild().getChannels().get(i).delete();
+                }
             }
         }
     }
