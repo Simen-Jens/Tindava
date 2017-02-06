@@ -20,7 +20,9 @@ task fatJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
-```<sub>https://www.mkyong.com/gradle/gradle-create-a-jar-file-with-dependencies/</sub>
+```
+<sub>https://www.mkyong.com/gradle/gradle-create-a-jar-file-with-dependencies/</sub>
+
 
 Then run `gradle fatJar`
 
