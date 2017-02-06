@@ -36,12 +36,10 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 
 ### Commandlist (🔥 command <required argument> [multiple | choice | argument] [optional argument] ###
 
-`🔥 create channel <channel name> <bot name in channel> <bot avatar url in channel>`
-
+`🔥 create channel <channel name> <bot name in channel> <bot avatar url in channel>`<br />
 *adds a channel to the server, with a pre-configured webhook*
 
-`🔥 my roles`
-
+`🔥 my roles`<br />
 *whispers you with your roles and role_ids for the server (useful for developing since there is no other way to get a roles id)*
 
 
