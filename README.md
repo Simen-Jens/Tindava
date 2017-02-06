@@ -42,5 +42,11 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 `🔥 my roles`<br />
 *whispers you with your roles and role_ids for the server (useful for developing since there is no other way to get a roles id)*
 
+`🔥 supply id <facebook id>`<br />
+*facebook id for the controlled tinder account*
+
+`🔥 supply auth_token <facebook auth_token>`<br />
+*facebook oauth2 token for tinder, you can find get your token <a href="http://www.google.com">HERE</a> (look for XXXXX)*
+
 
 ## THIS IS A WORK IN PROGRESS
