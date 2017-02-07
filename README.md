@@ -1,7 +1,8 @@
 <img align="right" src="http://i.imgur.com/V3pKOwS.png" height="200" width="200"/>
 
-# Tindava [![Support Server Invite](https://img.shields.io/badge/Join-Discord4J-7289DA.svg?style=flat-square)](https://discord.gg/HhdyS9b)
-Tinder bot controlled through a Discord server
+# Tindava
+Tinder bot controlled through a Discord server<br />
+Join the discord server here <a href="https://discord.gg/HhdyS9b"> https://discord.gg/HhdyS9b) </a>
 
 
 
