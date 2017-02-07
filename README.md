@@ -63,7 +63,7 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 *will read the given json data (see <a href="#JSON-data-format">json data format</a> for more info) and create messages / matches appropriately. If supplied with `!auth!` instead it will use the facebook credentials / xauth to pull json directly from tinder*
 
 `🔥 remove chats`<br />
-*removes generated chats __something does not work properly here__*
+*removes generated chats --something does not work properly here--*
 
 `🔥 toggle chat`<br />
 *toggles wether bot will send messages to tinder matches when messaged*
