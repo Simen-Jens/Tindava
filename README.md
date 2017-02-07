@@ -47,7 +47,7 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 *facebook id for the controlled tinder account*
 
 `🔥 supply auth_token <facebook auth_token>`<br />
-*facebook oauth2 token for tinder, you can find get your token <a href="https://www.facebook.com/dialog/oauth?client_id=464891386855067&redirect_uri=fbconnect://success&scope=basic_info,email,public_profile,user_about_me,user_activities,user_birthday,user_education_history,user_friends,user_interests,user_likes,user_location,user_photos,user_relationship_details&response_type=token">HERE</a> (look for an AJAX POST `confirm?dpr=x.xx` ↳ `jsmods` ↳ `require` ↳ `0` ↳ `3` ↳ `0` ↳ `access_token=`)*
+*facebook oauth2 token for tinder, you can find get your token <a href="https://www.facebook.com/dialog/oauth?client_id=464891386855067&redirect_uri=fbconnect://success&scope=basic_info,email,public_profile,user_about_me,user_activities,user_birthday,user_education_history,user_friends,user_interests,user_likes,user_location,user_photos,user_relationship_details&response_type=token">HERE</a> (look for an AJAX POST `confirm?dpr=x.xx` <sub>↳ `jsmods` ↳ `require` ↳ `0` ↳ `3` ↳ `0` ↳ `access_token=`</sub>)*
 
 ~~`🔥 add match <tinder id>`~~<br />
 ~~*calls the method for adding a match with specified id, will NOT actually make you a match*~~
