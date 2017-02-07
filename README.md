@@ -50,11 +50,23 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 `🔥 supply auth_token <facebook auth_token>`<br />
 *facebook oauth2 token for tinder, you can find your token <a href="https://www.facebook.com/dialog/oauth?client_id=464891386855067&redirect_uri=fbconnect://success&scope=basic_info,email,public_profile,user_about_me,user_activities,user_birthday,user_education_history,user_friends,user_interests,user_likes,user_location,user_photos,user_relationship_details&response_type=token">HERE</a> (look for an AJAX POST `confirm?dpr=x.xx` <sub>↳ `jsmods` ↳ `require` ↳ `0` ↳ `3` ↳ `0` ↳ `access_token=`</sub>)*
 
+`🔥 supply xauth <tinder xauth-token>`<br />
+*allows you to skip supplying facebook id and facebook auth_token*
+
+`🔥 purge <number>`<br />
+*deletes messages in the chat based on number given*
+
 ~~`🔥 add match <tinder id>`~~<br />
 ~~*calls the method for adding a match with specified id, will NOT actually make you a match*~~
 
-`🔥 request update <full json data>`<br />
-*will read the given json data (see <a href="#JSON-data-format">json data format</a> for more info) and create messages / matches appropriately*
+`🔥 request update <full json data | !auth!>`<br />
+*will read the given json data (see <a href="#JSON-data-format">json data format</a> for more info) and create messages / matches appropriately. If supplied with `!auth!` instead it will use the facebook credentials / xauth to pull json directly from tinder*
+
+`🔥 remove chats`<br />
+*removes generated chats __something does not work properly here__*
+
+`🔥 toggle chat`<br />
+*toggles wether bot will send messages to tinder matches when messaged*
 
 
 # JSON data format
