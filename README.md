@@ -1,6 +1,6 @@
 <img align="right" src="http://i.imgur.com/V3pKOwS.png" height="200" width="200"/>
 
-# Tindava
+# Tindava(https://www.versioneye.com/user/projects/57b27840b9c824005436e491) [![Support Server Invite](https://img.shields.io/badge/Join-Discord4J-7289DA.svg?style=flat-square)](https://discord.gg/NxGAeCY)
 Tinder bot controlled through a Discord server
 
 
