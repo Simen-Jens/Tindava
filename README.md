@@ -2,7 +2,7 @@
 
 # Tindava
 Tinder bot controlled through a Discord server<br />
-Join the discord server here <a href="https://discord.gg/HhdyS9b"> https://discord.gg/HhdyS9b) </a>
+Join the discord server here <a href="https://discord.gg/HhdyS9b"> https://discord.gg/HhdyS9b </a>
 
 
 
