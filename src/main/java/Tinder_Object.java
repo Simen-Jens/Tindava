@@ -1,3 +1,4 @@
+import org.json.JSONObject;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.Status;
@@ -13,7 +14,7 @@ public class Tinder_Object {
     public boolean alert = true;
     private CommandCentral cmd = null;
     private IGuild guild = null;
-    private String myID = "58604bf5cb80e1af340e4b54";
+    private String myID = "";    //this needs to be filled out
     ArrayList<Match> matches = new ArrayList<Match>();
 
     public Tinder_Object(CommandCentral cmd, IGuild guild){
@@ -21,16 +22,26 @@ public class Tinder_Object {
         this.guild = guild;
     }
 
+    public void updateID(String myID){
+        this.myID = myID;
+    }
+
     public class Match{
         ArrayList<Message> messages = new ArrayList<Message>();
-        private String matchID;
+        public String matchID;
         private String personID;
-        private IChannel myChannel;
+        public IChannel myChannel;
 
         public Match(String id, IChannel myChannel){
             matchID = id;
             personID = matchID.replace(myID, "");
             this.myChannel = myChannel;
+        }
+
+        public void sendMessage(String s) throws Exception{
+            JSONObject msg = new JSONObject();
+            msg.put("message", s);
+            cmd.pat.handleData(("https://api.gotindaer.com/user/matches/" + matchID), "POST", msg);
         }
 
         public Message addMessage(String messageID, String matchID, String to_matchID, String from_matchID, String messageContent, String sent_date, String created_date, String timestamp){
@@ -56,6 +67,7 @@ public class Tinder_Object {
                         return addMessage(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp);
                     }
                 } else{
+                    //you probably don't want this part, it would possibly duplicate messages. Comment out the whole block if needed
                     try{
                         cmd.cmd_messageDiscord(messageContent, myChannel, false, false);
                     } catch (Exception ex){
@@ -100,7 +112,7 @@ public class Tinder_Object {
         }
         //new match found
         if(alert){
-            IChannel tmp = cmd.cmd_createChannel(name, name, image, guild);
+            IChannel tmp = cmd.cmd_createChannel(name, name, image.substring(0, image.indexOf("\n")), guild);
             cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/HUirNMb.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true, false);
             tmp.pin(cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\n```"), tmp, false, false));
             matches.add(new Match(id, tmp));
@@ -114,6 +126,7 @@ public class Tinder_Object {
             }
             matches.add(new Match(id, tmp));
         }
+        System.out.println("match added " + name);
         cmd.client.changeStatus(Status.game("with " + (guild.getChannels().size()-2) + " matches"));
         return matches.get(matches.size()-1);
     }

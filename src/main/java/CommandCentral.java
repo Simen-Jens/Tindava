@@ -18,8 +18,11 @@ import static java.lang.Thread.sleep;
 public class CommandCentral extends Main{
     private String fb_id;
     private String fb_token;
-    private JSON_Interpreter interp;
+    public JSON_Interpreter interp;
     private Tinder_Object tndr;
+    public Postman pat;
+    private boolean gifaen = true;
+    private Update_Thread updater = new Update_Thread(10000L, this);
 
     public void initDone(){
         tndr = new Tinder_Object(this, client.getGuilds().get(0));
@@ -44,6 +47,9 @@ public class CommandCentral extends Main{
                     return;
                 }
                 fb_id = message[3];
+                if(fb_token != null && fb_id != null){
+                    pat = new Postman(fb_token, fb_id);
+                }
                 cmd_messageDiscord((":ok_hand: Facebook ID set to " + fb_id), event.getMessage().getChannel(), false, false);
             } else if(message[1].equals("supply") && message[2].equals("token")){
                 if(message.length != 4){
@@ -51,7 +57,20 @@ public class CommandCentral extends Main{
                     return;
                 }
                 fb_token = message[3];
+                if(fb_token != null && fb_id != null){
+                    pat = new Postman(fb_token, fb_id);
+                }
                 cmd_messageDiscord((":ok_hand: Facebook Token set to " + fb_token), event.getMessage().getChannel(), false, false);
+            } else if(message[1].equals("supply") && message[2].equals("xauth")){
+                /*
+                xauth here (shortcut skips fb_token and fb_id)
+                 */
+                if(message.length != 4){
+                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <xauth>", event.getMessage().getChannel(), false, false);
+                    return;
+                }
+                pat = new Postman(null, null);
+                pat.xauth = message[3];
             } else if(message[1].equals("purge")){
                 if(message.length != 3){
                     cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <amount to delete>", event.getMessage().getChannel(), false, false);
@@ -69,10 +88,48 @@ public class CommandCentral extends Main{
                     cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <json>", event.getMessage().getChannel(), false, false);
                     return;
                 }
-                interp.updateTinder(message[3]);
+                if(message[3].equals("!auth!")){
+                    System.out.println("SENT FOR");
+                    if(pat != null){
+                        cmd_messageDiscord((pat.auth() ? "login success" : "login failed"), event.getMessage().getChannel(), false, false);
+                    } else{
+                        cmd_messageDiscord(":postal_horn: Missing postman, supply bot with a love letter :love_letter: (facebook token + id or a tinder xauth-token)", event.getMessage().getChannel(), false, false);
+                        return;
+                    }
+                    if(pat.xauth != null){
+                        //updates go here
+                        interp.updateTinderFromFile();
+                        updater.start();
+                    }
+                } else{
+                    interp.updateTinder(message[3]);
+                }
             } else if(message[1].equals("remove") && message[2].equals("chats")){
                 for(int i = 2; i < event.getMessage().getGuild().getChannels().size(); i++){
                     event.getMessage().getGuild().getChannels().get(i).delete();
+                }
+            } else if(message[1].equals("toggle") && message[2].equals("chat")){
+                gifaen = !gifaen;
+                cmd_messageDiscord((gifaen ? ":negative_squared_cross_mark: chat is now disabled" : ":white_check_mark: is now enabled"), event.getMessage().getChannel(), false, false);
+            }
+        } else if(event.getMessage().getChannel().getID() != "277596483631579137" && event.getMessage().getChannel().getID() != "277893008806903809" && !gifaen) {
+            boolean doorman = false;
+            for(int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++){
+                if(event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals("278645767311196160")){
+                    doorman = true;
+                    break;
+                }
+            }
+
+            if(pat != null && doorman){
+                if(pat.xauth != null){
+                    String matchidFmsg = "";
+                    for(int i = 0; i < tndr.matches.size(); i++){
+                        if(tndr.matches.get(i).myChannel.getID().equals(event.getMessage().getChannel().getID())){
+                            matchidFmsg = tndr.matches.get(i).matchID;
+                        }
+                    }
+                    pat.handleData(("https://api.gotinder.com/user/matches/" + matchidFmsg), "POST", interp.gifIntegrator(event.getMessage().getContent()));
                 }
             }
         }
@@ -85,7 +142,7 @@ public class CommandCentral extends Main{
                 sleep(100);
                 event.getMessage().getChannel().getMessages().get(0).delete();
             } catch (Exception e){
-                System.out.println(e.toString());
+                break;
             }
 
         }
@@ -109,7 +166,8 @@ public class CommandCentral extends Main{
             String url="https://discordapp.com/api/webhooks/" + channel.getWebhooks().get(0).getID() + "/" + channel.getWebhooks().get(0).getToken();
             JSONObject msg = new JSONObject();
             msg.put("content",message);
-            postJSON(url, msg);
+            //postJSON(url, msg);   old code, hopefully redacted
+            pat.handleData(url, "POST", msg);
             sleep(100); //gives the webhook time to post
             for(int i = 0; i < channel.getMessages().size(); i++){
                 if(channel.getMessages().get(i).getContent().equals(message)){
@@ -129,7 +187,7 @@ public class CommandCentral extends Main{
 
         cmd_messageDiscord(build, user.getOrCreatePMChannel(), false, false);
     }
-
+/*
     public void postJSON(String url, JSONObject json) throws Exception{
         URL object=new URL(url);
 
@@ -159,4 +217,5 @@ public class CommandCentral extends Main{
             System.out.println(con.getResponseMessage());
         }
     }
+    */
 }
