@@ -3,6 +3,7 @@ import sx.blah.discord.api.events.EventDispatcher;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.TypingEvent;
 import sx.blah.discord.handle.obj.IUser;
 
 /**
@@ -31,6 +32,11 @@ public class AnnotationListener extends Main {
         @EventSubscriber
         public void onMessageReceivedEvent(MessageReceivedEvent event) throws Exception {
             cmd.interp(event);
+        }
+
+        @EventSubscriber
+        public void onTypingEvent(TypingEvent event) throws Exception{
+
         }
     }
 }

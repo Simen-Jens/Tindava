@@ -33,9 +33,11 @@ public class Postman {
 
         con.setRequestMethod(metohd);
 
-        OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
-        wr.write(data.toString());
-        wr.flush();
+        if(metohd.equals("POST")) {
+            OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+            wr.write(data.toString());
+            wr.flush();
+        }
 
         StringBuilder sb = new StringBuilder();
         int HttpResult = con.getResponseCode();
@@ -47,8 +49,10 @@ public class Postman {
                 sb.append(line + "\n");
             }
             br.close();
+            //System.out.println(sb.toString());
+            System.out.print("JSON get");
         } else {
-            System.out.println(con.getResponseMessage());
+            System.out.println(con.getResponseMessage() + " - " + url);
         }
 
         return sb.toString();
@@ -61,9 +65,8 @@ public class Postman {
 
         String s = handleData("https://api.gotinder.com/auth", "POST", tmp);
         if(s.contains("token"))xauth = new JSONObject(s).getString("token");
-        /*
-        need to handle personal tinder id here
-         */
+        if(s.contains("user"))myID = new JSONObject(s).getJSONObject("user").getString("_id");
+
         //System.out.println(xauth);
         return s.contains("token");
     }

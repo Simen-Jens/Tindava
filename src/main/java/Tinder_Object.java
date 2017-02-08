@@ -1,8 +1,10 @@
 import org.json.JSONObject;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.Status;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
@@ -15,9 +17,10 @@ import static java.lang.Thread.sleep;
  */
 public class Tinder_Object {
     public boolean alert = true;
-    private CommandCentral cmd = null;
+    public boolean alertME = true;
+    public CommandCentral cmd = null;
     private IGuild guild = null;
-    private String myID = "";    //this needs to be filled out, you will have problems if you don't (it's your personal tinder id)
+    public String myID = null;    //this needs to be filled out, you will have problems if you don't (it's your personal tinder id)
     ArrayList<Match> matches = new ArrayList<Match>();
 
     public Tinder_Object(CommandCentral cmd, IGuild guild){
@@ -34,11 +37,25 @@ public class Tinder_Object {
         public String matchID;
         private String personID;
         public IChannel myChannel;
+        private IMessage profileMessage;
 
-        public Match(String id, IChannel myChannel){
+        private String name;
+        private String bio;
+        int age;
+        String[] images;
+        private boolean superlike;
+
+        public Match(String id, IChannel myChannel, String name, String bio, int age, String images, boolean superlike, IMessage profileMessage){
             matchID = id;
             personID = matchID.replace(myID, "");
             this.myChannel = myChannel;
+            this.profileMessage = profileMessage;
+
+            this.name = name;
+            this.bio = bio;
+            this.age = age;
+            this.images = images.split("\n");
+            this.superlike = superlike;
         }
 
         public void sendMessage(String s) throws Exception{
@@ -70,17 +87,19 @@ public class Tinder_Object {
                         return addMessage(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp);
                     }
                 } else{
-                    //you probably don't want this part, it would possibly duplicate messages. Comment out the whole block if needed
-                    try{
-                        cmd.cmd_messageDiscord(messageContent, myChannel, false, false);
-                    } catch (Exception ex){
-                        System.out.println("TIMED OUT - RETRYING");
-                        try{
-                            sleep(2000);
-                        } catch (Exception ex2){
-                            System.out.println("zZzzZZZzzzZ error sleeping (ln 81)");
+                    if(alertME) {
+                        //you probably don't want this part, it would possibly duplicate messages. Comment out the whole block if needed
+                        try {
+                            cmd.cmd_messageDiscord(messageContent, myChannel, false, false);
+                        } catch (Exception ex) {
+                            System.out.println("TIMED OUT - RETRYING");
+                            try {
+                                sleep(2000);
+                            } catch (Exception ex2) {
+                                System.out.println("zZzzZZZzzzZ error sleeping (ln 81)");
+                            }
+                            return addMessage(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp);
                         }
-                        return addMessage(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp);
                     }
                 }
                 messages.add(new Message(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp));
@@ -106,7 +125,7 @@ public class Tinder_Object {
         }
     }
 
-    public Match addMatch(String id, String name, String bio, int age, String image) throws Exception{
+    public Match addMatch(String id, String name, String bio, int age, String image, boolean superlike) throws Exception{
         for(int i = 0; i < matches.size(); i++){
             if(matches.get(i).matchID.equals(id)){
                 //match already exsists
@@ -116,20 +135,39 @@ public class Tinder_Object {
         //new match found
         if(alert){
             IChannel tmp = cmd.cmd_createChannel(name, name, image.substring(0, image.indexOf("\n")), guild);
-            cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/HUirNMb.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true/*change this to false if you hate @everyone*/, false);
-            tmp.pin(cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\n```"), tmp, false, false));
-            matches.add(new Match(id, tmp));
+            IMessage firstmsg = cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\nSUPER: " + superlike + "```"), tmp, false, false);
+
+            if(superlike){
+                cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/6VsMgAL.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true/*change this to false if you hate @everyone*/, false);
+                firstmsg.addReaction("\ud83d\udc99");
+            } else{
+                cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/HUirNMb.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true/*change this to false if you hate @everyone*/, false);
+            }
+
+            tmp.pin(firstmsg);
+            matches.add(new Match(id, tmp, name, bio, age, image, superlike, firstmsg));
         } else{
+            String s1 = Normalizer.normalize(name, Normalizer.Form.NFKD);
+            String regex = "[\\p{InCombiningDiacriticalMarks}\\p{IsLm}\\p{IsSk}]+";
+            String sanitizedName = new String(s1.replaceAll(regex, "").getBytes("ascii"), "ascii").toLowerCase().replace("?","o");
+
+            System.out.print("assign match " + name);
             IChannel tmp = null;
-            for(int i = 0; i < guild.getChannels().size(); i++){
-                if(guild.getChannels().get(i).getMessages().get(guild.getChannels().get(i).getMessages().size()-1).getContent().contains(id)){
-                    tmp = guild.getChannels().get(i);
-                    break;
+            for(int i = 0; i < guild.getChannelsByName(sanitizedName).size(); i++){
+                System.out.print(" " + i + ",");
+                if(guild.getChannelsByName(sanitizedName).get(i).getPinnedMessages().size() > 0){
+                    if(guild.getChannelsByName(sanitizedName).get(i).getPinnedMessages().get(0).getContent().contains(id)){
+                        tmp = guild.getChannelsByName(sanitizedName).get(i);
+                        System.out.println();
+                        matches.add(new Match(id, tmp, name, bio, age, image, superlike, tmp.getPinnedMessages().get(0)));
+                        break;
+                    }
                 }
             }
-            matches.add(new Match(id, tmp));
+
         }
-        cmd.client.changeStatus(Status.game("with " + (guild.getChannels().size()-2) + " matches"));
+        System.out.println();
+        cmd.client.changeStatus(Status.game("with " + matches.size() + " matches"));
         return matches.get(matches.size()-1);
     }
 }

@@ -3,6 +3,8 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.*;
 import sx.blah.discord.util.Image;
 
+import java.text.Normalizer;
+
 import static java.lang.Thread.sleep;
 
 
@@ -16,7 +18,9 @@ public class CommandCentral extends Main{
     private Tinder_Object tndr;
     public Postman pat;
     private boolean chattoggle = true;
-    private Update_Thread updater = new Update_Thread(10000L, this);
+    private Update_Thread updater = new Update_Thread(10000L, 60000L, this);
+    //private String ferdet = "";   --Use defaultChannels from Main instead
+    public Auto_Swipe swiper;
 
     /*
     Called upon when the bot is ready
@@ -48,6 +52,8 @@ public class CommandCentral extends Main{
             2i. Removes excess chat-channels (warning something is wrong in this metohd, I will get around to it).
             2j. Handels chat toggle command, toggles whether or not messages will be sent to Tinder matches.
             2k. Handels stop updates command, stops the update thread.
+            2l.
+            2m.
      */
     public void interp(MessageReceivedEvent event) throws Exception{
         // 1
@@ -77,7 +83,8 @@ public class CommandCentral extends Main{
                 if(fb_token != null && fb_id != null){
                     pat = new Postman(fb_token, fb_id);
                 }
-                cmd_messageDiscord((":ok_hand: Facebook ID set to " + fb_id), event.getMessage().getChannel(), false, false);
+                event.getMessage().addReaction("\ud83d\udc4c");
+                //cmd_messageDiscord((":ok_hand: Facebook ID set to " + fb_id), event.getMessage().getChannel(), false, false);
             }
             // D    - supply token
             else if(message[1].equals("supply") && message[2].equals("token")){
@@ -89,7 +96,8 @@ public class CommandCentral extends Main{
                 if(fb_token != null && fb_id != null){
                     pat = new Postman(fb_token, fb_id);
                 }
-                cmd_messageDiscord((":ok_hand: Facebook Token set to " + fb_token), event.getMessage().getChannel(), false, false);
+                event.getMessage().addReaction("\ud83d\udc4c");
+                //cmd_messageDiscord((":ok_hand: Facebook Token set to " + fb_token), event.getMessage().getChannel(), false, false);
             }
             // E    - supply xauth
             else if(message[1].equals("supply") && message[2].equals("xauth")){
@@ -99,6 +107,8 @@ public class CommandCentral extends Main{
                 }
                 pat = new Postman(null, null);
                 pat.xauth = message[3];
+                swiper = new Auto_Swipe(interp, pat, this);
+                event.getMessage().addReaction("\ud83d\udc4c");
             }
             // F    - purge
             else if(message[1].equals("purge")){
@@ -142,53 +152,82 @@ public class CommandCentral extends Main{
             }
             // I    - remove chats
             else if(message[1].equals("remove") && message[2].equals("chats")){
-                for(int i = 2; i < event.getMessage().getGuild().getChannels().size(); i++){
+                for(int i = 3; i < event.getMessage().getGuild().getChannels().size(); i++){
                     event.getMessage().getGuild().getChannels().get(i).delete();
                 }
             }
             // J    - toggle chat
             else if(message[1].equals("toggle") && message[2].equals("chat")){
-                chattoggle = !chattoggle;
-                cmd_messageDiscord((chattoggle ? ":negative_squared_cross_mark: chat is now disabled" : ":white_check_mark: is now enabled"), event.getMessage().getChannel(), false, false);
+                if(event.getMessage().getAuthor().getID().equals(event.getMessage().getGuild().getOwnerID())){
+                    chattoggle = !chattoggle;
+                    cmd_messageDiscord((chattoggle ? ":negative_squared_cross_mark: chat is now disabled" : ":white_check_mark: chat is now enabled"), event.getMessage().getChannel(), false, false);
+                } else{
+                    cmd_messageDiscord(("only server owner can toggle chat"), event.getMessage().getChannel(), false, false);
+                }
             }
             // K    - stops the update thread
             else if(message[1].equals("stop") && message[2].equals("updates")){
                 updater.runn = false;
+                event.getMessage().addReaction("\u2714");
                 cmd_messageDiscord((":ok_hand: update thread `runn = " + updater.runn + "`"), event.getMessage().getChannel(), false, false);
+            }
+            // L    - temp method to disable alerts for your own id
+            else if(message[1].equals("t_o_alert")){
+                tndr.alertME = false;
+                event.getMessage().addReaction("\ud83d\udc4c");
+            }
+            // M    - requests recommendations from Tinder and swipes right on all of them
+            else if(message[1].equals("swipe")){
+                if(swiper != null){
+                    swiper.swipeAll();
+                } else{
+                    cmd_messageDiscord(("need to login :broken_heart:"), event.getMessage().getChannel(), false, false);
+                }
             }
         }
         // 3    - the block that controls messages that does not have a prefix i.e messages that are meant for matches
-        else if(event.getMessage().getChannel().getID() != "277596483631579137" && event.getMessage().getChannel().getID() != "277893008806903809" && !chattoggle) {
+        else if((!defaultChannels.contains(event.getMessage().getChannel().getID()))) {
+            if (!event.getMessage().getAuthor().isBot()) {
+                if (!chattoggle) {
             /*
                 "Guard-function" makes it so that only people with a certain roleID will be able to actually send messages to Tinder matches
                 "is this really necessary?? I want everyone to send messages :(".. If you don't have this every match will receive a duplicate of their own
                 message. Why? Webhooks WILL trigger a MessageReceivedEvent just like any other user...
              */
-            boolean doorman = false;
-            for(int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++){
-                if(event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals("278645767311196160")){
-                    doorman = true;
-                    break;
-                }
-            }
+                    boolean doorman = false;
+                    for (int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++) {
+                        if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals("278645767311196160")) {
+                            doorman = true;
+                            break;
+                        }
+                    }
 
             /*
                 If it got past the bouncer and the bot as sufficient access to Tinder (e.i has a xauth-token)
                 go ahead and send that message (uses gifIntegrator from JSON_Interpreter to generate a giphy if
                 message has prefix ":gif:" followed by a giphy link).
              */
-            if(pat != null && doorman){
-                if(pat.xauth != null){
-                    String matchidFmsg = "";
-                    for(int i = 0; i < tndr.matches.size(); i++){
-                        if(tndr.matches.get(i).myChannel.getID().equals(event.getMessage().getChannel().getID())){
-                            matchidFmsg = tndr.matches.get(i).matchID;
+                    if (pat != null && doorman) {
+                        if (pat.xauth != null) {
+                            String matchidFmsg = "";
+                            for (int i = 0; i < tndr.matches.size(); i++) {
+                                if (tndr.matches.get(i).myChannel.getID().equals(event.getMessage().getChannel().getID())) {
+                                    matchidFmsg = tndr.matches.get(i).matchID;
+                                }
+                            }
+                            pat.handleData(("https://api.gotinder.com/user/matches/" + matchidFmsg), "POST", interp.gifIntegrator(interp.stripCode(event.getMessage().getContent())));
+                            //event.getMessage().addReaction("\ud83d\udc8c");
+                            updater.pulls = 0;
+                            return;
                         }
                     }
-                    pat.handleData(("https://api.gotinder.com/user/matches/" + matchidFmsg), "POST", interp.gifIntegrator(event.getMessage().getContent()));
                 }
+                event.getMessage().addReaction("\u274c");
             }
         }
+        //speeds up pullrate
+        client.changeStatus(Status.game("with " + tndr.matches.size() + " matches"));
+        updater.pulls = 0;
     }
 
     /*
@@ -212,11 +251,22 @@ public class CommandCentral extends Main{
         Creates a new Discord channel with a pre configured webhook.
      */
     public IChannel cmd_createChannel(String name, String hookName, String hookImage, IGuild guild) throws Exception{
-        if(hookName == null)hookName = "UNKNOWN";
+        if(hookName == null || hookName.equals(""))hookName = "UNKNOWN";
         if(hookImage == null)hookImage = "http://barabasilab.neu.edu/people/baruch/WebPage_files/Silhouette.jpg";
 
-        IChannel tmp = guild.createChannel(name);
-        tmp.createWebhook(hookName, hookImage).changeDefaultAvatar(Image.forUrl("jpg",hookImage));
+
+        /*
+            Tusen takk hÅkon for at du bruker en tullete bokstav i navnet ditt... Lærer meg å sanitize strings
+         */
+        String s1 = Normalizer.normalize(name, Normalizer.Form.NFKD);
+        String regex = "[\\p{InCombiningDiacriticalMarks}\\p{IsLm}\\p{IsSk}]+";
+        String sanitizedName = new String(s1.replaceAll(regex, "").getBytes("ascii"), "ascii").toLowerCase().replace("?","o");
+        sanitizedName = sanitizedName.substring(0, 1).toUpperCase() + sanitizedName.substring(1);
+
+        System.out.println("!! MOTHERFUCKER - " + hookName + " !!\n sanitized " + sanitizedName);
+
+        IChannel tmp = guild.createChannel(sanitizedName);
+        tmp.createWebhook(sanitizedName, hookImage).changeDefaultAvatar(Image.forUrl("jpg",hookImage));
         return tmp;
     }
 
@@ -230,7 +280,6 @@ public class CommandCentral extends Main{
             String url="https://discordapp.com/api/webhooks/" + channel.getWebhooks().get(0).getID() + "/" + channel.getWebhooks().get(0).getToken();
             JSONObject msg = new JSONObject();
             msg.put("content",message);
-            //postJSON(url, msg);   old code, hopefully redacted
             pat.handleData(url, "POST", msg);
             sleep(100); //gives the webhook time to post
             for(int i = 0; i < channel.getMessages().size(); i++){
@@ -254,37 +303,4 @@ public class CommandCentral extends Main{
 
         cmd_messageDiscord(build, user.getOrCreatePMChannel(), false, false);
     }
-
-
-/*  hopefully old code (not tested though...)
-    public void postJSON(String url, JSONObject json) throws Exception{
-        URL object=new URL(url);
-
-        HttpURLConnection con = (HttpURLConnection) object.openConnection();
-        con.setDoOutput(true);
-        con.setDoInput(true);
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setRequestProperty("User-agent", "Tindava 1.0-SNAPSHOT");
-        con.setRequestMethod("POST");
-
-        OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
-        wr.write(json.toString());
-        wr.flush();
-
-        StringBuilder sb = new StringBuilder();
-        int HttpResult = con.getResponseCode();
-        if (HttpResult == HttpURLConnection.HTTP_OK) {
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(con.getInputStream(), "utf-8"));
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-            br.close();
-            System.out.println("" + sb.toString());
-        } else {
-            System.out.println(con.getResponseMessage());
-        }
-    }
-    */
 }
