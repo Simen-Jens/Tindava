@@ -7,13 +7,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Created by Simen on 07.02.2017.
+ * Created by Scoop on 07.02.2017.
  */
 public class Postman {
     private String token;
     private String id;
     public String xauth;
-    public String myID;
+    public String myID; //will use this later (see ln 65)
 
     public Postman(String token, String id){
         this.token = token;
@@ -50,7 +50,7 @@ public class Postman {
         } else {
             System.out.println(con.getResponseMessage());
         }
-        //System.out.println(sb.toString());
+
         return sb.toString();
     }
 
@@ -64,7 +64,7 @@ public class Postman {
         /*
         need to handle personal tinder id here
          */
-        System.out.println(xauth);
+        //System.out.println(xauth);
         return s.contains("token");
     }
 }

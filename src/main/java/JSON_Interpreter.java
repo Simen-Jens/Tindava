@@ -1,23 +1,18 @@
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Year;
 
 /**
- * Created by Simen on 05.02.2017.
+ * Created by Scoop on 05.02.2017.
  */
 public class JSON_Interpreter {
-    private String data;
     private Tinder_Object tinder;
-    public JSON_Interpreter(String data, Tinder_Object tinder){
-        this.data = data;
+    public JSON_Interpreter(Tinder_Object tinder){
         this.tinder = tinder;
     }
 
@@ -52,11 +47,11 @@ public class JSON_Interpreter {
                     }
                 }
             } catch (Exception ex){
-                System.out.println("err");
+                System.out.println("Error, probably someone who deleted their Tinder / unmatched you :c");
             }
         }
         //save to file here!
-        System.out.println("DONE " + (System.currentTimeMillis() - time));
+        System.out.println("Data structure updated\nalert = " + tinder.alert + "\nTime used:" + (System.currentTimeMillis() - time) + "ms");
     }
 
     public String readFile(String path, Charset encoding) throws IOException {

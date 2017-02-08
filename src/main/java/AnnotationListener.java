@@ -4,10 +4,9 @@ import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.handle.obj.Status;
 
 /**
- * Created by Simen on 05.02.2017.
+ * Created by Scoop on 05.02.2017.
  */
 public class AnnotationListener extends Main {
     private static CommandCentral cmd;

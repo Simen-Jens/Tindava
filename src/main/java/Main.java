@@ -4,7 +4,7 @@ import sx.blah.discord.api.events.EventDispatcher;
 import sx.blah.discord.util.DiscordException;
 
 /**
- * Created by Simen on 05.02.2017.
+ * Created by Scoop on 05.02.2017.
  */
 public class Main {
     public static IDiscordClient client; // The instance of the discord client.

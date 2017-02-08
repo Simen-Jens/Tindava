@@ -6,15 +6,18 @@ import sx.blah.discord.handle.obj.Status;
 import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
+/*
+    Will comment this later, still some work to do here and it's a mess
+ */
 
 /**
- * Created by Simen on 05.02.2017.
+ * Created by Scoop on 05.02.2017.
  */
 public class Tinder_Object {
     public boolean alert = true;
     private CommandCentral cmd = null;
     private IGuild guild = null;
-    private String myID = "";    //this needs to be filled out
+    private String myID = "";    //this needs to be filled out, you will have problems if you don't (it's your personal tinder id)
     ArrayList<Match> matches = new ArrayList<Match>();
 
     public Tinder_Object(CommandCentral cmd, IGuild guild){
@@ -62,7 +65,7 @@ public class Tinder_Object {
                         try{
                             sleep(2000);
                         } catch (Exception ex2){
-
+                            System.out.println("zZzzZZZzzzZ error sleeping (ln 66)");
                         }
                         return addMessage(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp);
                     }
@@ -73,9 +76,9 @@ public class Tinder_Object {
                     } catch (Exception ex){
                         System.out.println("TIMED OUT - RETRYING");
                         try{
-                            sleep(1000);
+                            sleep(2000);
                         } catch (Exception ex2){
-
+                            System.out.println("zZzzZZZzzzZ error sleeping (ln 81)");
                         }
                         return addMessage(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp);
                     }
@@ -113,7 +116,7 @@ public class Tinder_Object {
         //new match found
         if(alert){
             IChannel tmp = cmd.cmd_createChannel(name, name, image.substring(0, image.indexOf("\n")), guild);
-            cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/HUirNMb.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true, false);
+            cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/HUirNMb.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true/*change this to false if you hate @everyone*/, false);
             tmp.pin(cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\n```"), tmp, false, false));
             matches.add(new Match(id, tmp));
         } else{
@@ -126,7 +129,6 @@ public class Tinder_Object {
             }
             matches.add(new Match(id, tmp));
         }
-        System.out.println("match added " + name);
         cmd.client.changeStatus(Status.game("with " + (guild.getChannels().size()-2) + " matches"));
         return matches.get(matches.size()-1);
     }
