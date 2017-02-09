@@ -36,7 +36,6 @@ public class Auto_Swipe {
         for(int i = 0; i < (remaining < tmp.length ? remaining : tmp.length); i++){
             post.handleData(("https://api.gotinder.com/like/" + tmp[i]), "GET", new JSONObject());
         }
-
         cmd.cmd_messageDiscord(("Swiped on " + tmp.length + " people, " + (remaining-tmp.length < 1 ? 0 : remaining-tmp.length) + " remaining swipes :robot:"), cmd.client.getGuilds().get(0).getChannels().get(0), false, false);
     }
 }

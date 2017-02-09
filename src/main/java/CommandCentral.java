@@ -119,14 +119,7 @@ public class CommandCentral extends Main{
                 cmd_purge(event, Integer.parseInt(message[2]));
             }
             // G    - add match
-            /* REDACTED
-            else if(message[1].equals("add") && message[2].equals("match")){
-                if(message.length != 4){
-                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <matchID>", event.getMessage().getChannel(), false, false);
-                    return;
-                }
-                //tndr.addMatch(message[3]);
-            } */
+            /* REDACTED*/
             // H    - request update
             else if(message[1].equals("request") && message[2].equals("update")){
                 if(message.length != 4){
@@ -152,9 +145,7 @@ public class CommandCentral extends Main{
             }
             // I    - remove chats
             else if(message[1].equals("remove") && message[2].equals("chats")){
-                for(int i = 3; i < event.getMessage().getGuild().getChannels().size(); i++){
-                    event.getMessage().getGuild().getChannels().get(i).delete();
-                }
+                cmd_removeChats(event);
             }
             // J    - toggle chat
             else if(message[1].equals("toggle") && message[2].equals("chat")){
@@ -166,8 +157,8 @@ public class CommandCentral extends Main{
                 }
             }
             // K    - stops the update thread
-            else if(message[1].equals("stop") && message[2].equals("updates")){
-                updater.runn = false;
+            else if(message[1].equals("toggle") && message[2].equals("updates")){
+                updater.runn = !updater.runn;
                 event.getMessage().addReaction("\u2714");
                 cmd_messageDiscord((":ok_hand: update thread `runn = " + updater.runn + "`"), event.getMessage().getChannel(), false, false);
             }
@@ -228,6 +219,17 @@ public class CommandCentral extends Main{
         //speeds up pullrate
         client.changeStatus(Status.game("with " + tndr.matches.size() + " matches"));
         updater.pulls = 0;
+    }
+
+    public boolean cmd_removeChats(MessageReceivedEvent event) throws Exception{
+        for(int i = 0; i < event.getMessage().getGuild().getChannels().size(); i++){
+            if(!defaultChannels.contains(event.getMessage().getGuild().getChannels().get(i).getID())){
+                event.getMessage().getGuild().getChannels().get(i).delete();
+                return cmd_removeChats(event);
+            }
+        }
+        System.out.println("Done removing chats");
+        return true;
     }
 
     /*

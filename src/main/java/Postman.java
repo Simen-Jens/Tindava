@@ -59,15 +59,21 @@ public class Postman {
     }
 
     public boolean auth() throws Exception{
-        JSONObject tmp = new JSONObject();
-        tmp.put("facebook_token", token);
-        tmp.put("facebook_id", id);
+        if(xauth != null){
+            String s = handleData("https://api.gotinder.com/meta", "GET", new JSONObject());
+            if (s.contains("user")) myID = new JSONObject(s).getJSONObject("user").getString("_id");
+            return true;
+        } else {
+            JSONObject tmp = new JSONObject();
+            tmp.put("facebook_token", token);
+            tmp.put("facebook_id", id);
 
-        String s = handleData("https://api.gotinder.com/auth", "POST", tmp);
-        if(s.contains("token"))xauth = new JSONObject(s).getString("token");
-        if(s.contains("user"))myID = new JSONObject(s).getJSONObject("user").getString("_id");
+            String s = handleData("https://api.gotinder.com/auth", "POST", tmp);
+            if (s.contains("token")) xauth = new JSONObject(s).getString("token");
+            if (s.contains("user")) myID = new JSONObject(s).getJSONObject("user").getString("_id");
 
-        //System.out.println(xauth);
-        return s.contains("token");
+            //System.out.println(xauth);
+            return s.contains("token");
+        }
     }
 }

@@ -20,7 +20,7 @@ public class Tinder_Object {
     public boolean alertME = true;
     public CommandCentral cmd = null;
     private IGuild guild = null;
-    public String myID = null;    //this needs to be filled out, you will have problems if you don't (it's your personal tinder id)
+    public String myID = null;
     ArrayList<Match> matches = new ArrayList<Match>();
 
     public Tinder_Object(CommandCentral cmd, IGuild guild){
