@@ -1,6 +1,6 @@
 <img align="right" src="http://i.imgur.com/V3pKOwS.png" height="200" width="200"/>
 
-# Tindava
+# Tindava ![TravisCI](https://travis-ci.org/Simen-Jens/Tindava.svg?branch=master)
 Tinder bot controlled through a Discord server<br />
 
 
