@@ -135,7 +135,7 @@ For more information check out <a href="https://gist.github.com/rtt/10403467">Ti
 # Setup
 * Step 1. download or clone the project.
 
-* Step 2. <a href="#compile_with_gradle">compile</a> the project.
+* Step 2. <a href="#compile-with-gradle">compile</a> the project.
 
 * Step 3. create a new file called `empty.json` in the same directory as the `.jar` file.
 The `.json` file should contain an empty json object like so.
@@ -153,7 +153,7 @@ The `.json` file should contain an empty json object like so.
 
 * Step 5. run the .jar file with `java -jar Tindava.jar <discord bot token> <default channel ids>`
 
-* Step 6. message the bot with an ID and token from Facebook as described <a href="#discord_commands">here</a>
+* Step 6. message the bot with an ID and token from Facebook as described <a href="#discord-commands">here</a>
 
 * Step 7. message the bot with this exact line `🔥 request update !auth!`
 
