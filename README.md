@@ -52,16 +52,18 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 `🔥 supply xauth <tinder xauth-token>`<br />
 *allows you to skip supplying facebook id and facebook auth_token*
 
-`🔥 purge <number>`<br />
-*deletes messages in the chat based on number given*
-
 `🔥 request update <full json data | !auth!>`<br />
 *will read the given json data (see <a href="#JSON-data-format">json data format</a> for more info) and create messages / matches appropriately. If supplied with `!auth!` instead it will use the facebook credentials / xauth to pull json directly from tinder*<br />
 <sub>__THIS IS HOW YOU "START" THE BOT__</sub>
 
+`🔥 purge <number>`<br />
+*deletes messages in the chat based on number given*
+
+`🔥 unmatch`<br />
+*unmatches the the channel's respective user*
+
 `🔥 remove chats`<br />
 *removes generated chats<br />
-<sub>something does not work properly here</sub>*
 
 `🔥 toggle chat`<br />
 *toggles whether the bot will send messages to tinder matches when messaged*
@@ -69,8 +71,9 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 `🔥 toggle updates`<br />
 *toggles whether the update thread off/on*
 
-`🔥 t_o_alert`<br />
-*turn off alert, just mutes messages from yourself, use this command if you find that the bot duplicates your messages*
+~~`🔥 t_o_alert`<br />~~
+~~*turn off alert, just mutes messages from yourself, use this command if you find that the bot duplicates your messages*~~<br />
+<sub>not needed anymore (still usable, should you experience issues)</sub>
 
 `🔥 swipe`<br />
 *gets all recommendations from Tinder and swipes right, returns the amount of people swiped and how many swipes are left*
