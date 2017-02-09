@@ -3,6 +3,7 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.Status;
+import sx.blah.discord.util.EmbedBuilder;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class Tinder_Object {
         public Match(String id, IChannel myChannel, String name, String bio, int age, String images, boolean superlike, IMessage profileMessage){
             matchID = id;
             personID = matchID.replace(myID, "");
+            System.out.println(matchID);
             this.myChannel = myChannel;
             this.profileMessage = profileMessage;
 
@@ -58,9 +60,18 @@ public class Tinder_Object {
             this.superlike = superlike;
         }
 
+        public void unmatched() throws Exception{
+            EmbedBuilder tmp = new EmbedBuilder();
+            tmp.withColor(231, 57, 69);
+            tmp.withTitle("Unmatched");
+            tmp.withDescription("aw nuts...");
+            tmp.withImage("http://i.imgur.com/pAi00xj.png");
+            myChannel.sendMessage("", tmp.build(), false);
+        }
+
         public void unmatch() throws Exception{
             //thank the overlords for garbage collector
-            cmd.pat.handleData(("https://api.gotinder.com/users/matches/" + matchID), "DELETE", new JSONObject());
+            cmd.pat.handleData(("https://api.gotinder.com/user/matches/" + matchID), "DELETE", new JSONObject());
             myChannel.delete();
             matches.remove(this);
         }
@@ -80,7 +91,8 @@ public class Tinder_Object {
             }
             //new message found
             if(alert){
-                System.out.println(matchID + " {} " + from_matchID);
+                System.out.println("found new message");
+                //System.out.println(matchID + " {} " + from_matchID);
                 if(personID.equals(from_matchID)){
                     try{
                         cmd.cmd_messageDiscord(messageContent, myChannel, false, true);
@@ -144,20 +156,24 @@ public class Tinder_Object {
             IChannel tmp = cmd.cmd_createChannel(name, name, image.substring(0, image.indexOf("\n")), guild);
             IMessage firstmsg = cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\nSUPER: " + superlike + "```"), tmp, false, false);
             try{
-                guild.getChannels().get(0).sendMessage("**New match!**", cmd.buildMatchMessage(cmd.sanitize(name), bio, age, superlike, image.substring(0, image.indexOf("\n"))), false);
+                guild.getChannelByID(cmd.defaultChannels.split(" ")[0]).sendMessage("**New match!**", cmd.buildMatchMessage(cmd.sanitize(name), bio, age, superlike, image.substring(0, image.indexOf("\n"))), false);
             } catch (Exception ex){
-                cmd.cmd_messageDiscord(("Got new match, could not create embed... <#" + tmp.getID() + ">"), guild.getChannels().get(0), false, false);
+                cmd.cmd_messageDiscord(("Got new match, could not create embed... <#" + tmp.getID() + ">"), guild.getChannelByID(cmd.defaultChannels.split(" ")[0]), false, false);
             }
             tmp.pin(firstmsg);
             matches.add(new Match(id, tmp, name, bio, age, image, superlike, firstmsg));
         } else{
             System.out.print("assign match " + name);
             IChannel tmp = null;
-            for(int i = 0; i < guild.getChannelsByName(cmd.sanitize(name)).size(); i++){
+            if(guild.getChannelsByName(cmd.sanitize(name).toLowerCase()).size() < 1){
+                System.out.println(" !!" + cmd.sanitize(name) + " < 1!!\ncant add this match");
+                return null;
+            }
+            for(int i = 0; i < guild.getChannelsByName(cmd.sanitize(name).toLowerCase()).size(); i++){
                 System.out.print(" " + i + ",");
-                if(guild.getChannelsByName(cmd.sanitize(name)).get(i).getPinnedMessages().size() > 0){
-                    if(guild.getChannelsByName(cmd.sanitize(name)).get(i).getPinnedMessages().get(0).getContent().contains(id)){
-                        tmp = guild.getChannelsByName(cmd.sanitize(name)).get(i);
+                if(guild.getChannelsByName(cmd.sanitize(name).toLowerCase()).get(i).getPinnedMessages().size() > 0){
+                    if(guild.getChannelsByName(cmd.sanitize(name).toLowerCase()).get(i).getPinnedMessages().get(0).getContent().contains(id)){
+                        tmp = guild.getChannelsByName(cmd.sanitize(name).toLowerCase()).get(i);
                         System.out.println();
                         matches.add(new Match(id, tmp, name, bio, age, image, superlike, tmp.getPinnedMessages().get(0)));
                         break;

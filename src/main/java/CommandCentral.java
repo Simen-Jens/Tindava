@@ -23,7 +23,7 @@ public class CommandCentral extends Main{
     private Tinder_Object tndr;
     public Postman pat;
     private boolean chattoggle = true;
-    private Update_Thread updater = new Update_Thread(10000L, 60000L, this);
+    private Update_Thread updater = new Update_Thread(10000L, 10000L, this);
     //private String ferdet = "";   --Use defaultChannels from Main instead
     public Auto_Swipe swiper;
 
@@ -61,6 +61,11 @@ public class CommandCentral extends Main{
             2m.
      */
     public void interp(MessageReceivedEvent event) throws Exception{
+        if(tndr == null){
+            tndr = new Tinder_Object(this, client.getGuilds().get(0));
+            interp = new JSON_Interpreter(tndr);
+        }
+
         // 1
         String[] message = event.getMessage().getContent().split(" ");
         // 2
@@ -131,7 +136,7 @@ public class CommandCentral extends Main{
                         return;
                     }
                 }
-                cmd_messageDiscord("Can't delete this match", event.getMessage().getGuild().getChannels().get(0), false, false);
+                cmd_messageDiscord("Can't delete this match", event.getMessage().getChannel(), false, false);
             }
             // H    - request update
             else {
@@ -193,42 +198,47 @@ public class CommandCentral extends Main{
         }
         // 3    - the block that controls messages that does not have a prefix i.e messages that are meant for matches
         else if((!defaultChannels.contains(event.getMessage().getChannel().getID()))) {
-            if (!event.getMessage().getAuthor().isBot()) {
-                if (!chattoggle) {
+            if (!event.getMessage().getChannel().isPrivate()) {
+                if (!event.getMessage().getAuthor().isBot()) {
+                    if (!chattoggle) {
             /*
                 "Guard-function" makes it so that only people with a certain roleID will be able to actually send messages to Tinder matches
                 "is this really necessary?? I want everyone to send messages :(".. If you don't have this every match will receive a duplicate of their own
                 message. Why? Webhooks WILL trigger a MessageReceivedEvent just like any other user...
              */
-                    boolean doorman = false;
-                    for (int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++) {
-                        if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals("278645767311196160")) {
-                            doorman = true;
-                            break;
+                        boolean doorman = false;
+                        for (int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++) {
+                            if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals("278645767311196160")) {
+                                doorman = true;
+                                break;
+                            }
                         }
-                    }
 
             /*
                 If it got past the bouncer and the bot as sufficient access to Tinder (e.i has a xauth-token)
                 go ahead and send that message (uses gifIntegrator from JSON_Interpreter to generate a giphy if
                 message has prefix ":gif:" followed by a giphy link).
              */
-                    if (pat != null && doorman) {
-                        if (pat.xauth != null) {
-                            String matchidFmsg = "";
-                            for (int i = 0; i < tndr.matches.size(); i++) {
-                                if (tndr.matches.get(i).myChannel.getID().equals(event.getMessage().getChannel().getID())) {
-                                    matchidFmsg = tndr.matches.get(i).matchID;
+                        if (pat != null && doorman) {
+                            if (pat.xauth != null) {
+                                String matchidFmsg = "";
+                                for (int i = 0; i < tndr.matches.size(); i++) {
+                                    if (tndr.matches.get(i).myChannel.getID().equals(event.getMessage().getChannel().getID())) {
+                                        matchidFmsg = tndr.matches.get(i).matchID;
+                                    }
                                 }
+                                pat.handleData(("https://api.gotinder.com/user/matches/" + matchidFmsg), "POST", interp.gifIntegrator(interp.stripCode(event.getMessage().getContent())));
+                                //event.getMessage().addReaction("\ud83d\udc8c");
+                                updater.pulls = 0;
+                                return;
                             }
-                            pat.handleData(("https://api.gotinder.com/user/matches/" + matchidFmsg), "POST", interp.gifIntegrator(interp.stripCode(event.getMessage().getContent())));
-                            //event.getMessage().addReaction("\ud83d\udc8c");
-                            updater.pulls = 0;
-                            return;
                         }
                     }
+                    event.getMessage().addReaction("\u274c");
                 }
-                event.getMessage().addReaction("\u274c");
+            }
+            if(event.getMessage().getChannel().isPrivate()){
+                event.getMessage().addReaction("\u2754");
             }
         }
         //speeds up pullrate
@@ -242,7 +252,7 @@ public class CommandCentral extends Main{
                 appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
                 withImage(image).
                 withThumbnail(superlike ? "http://pre01.deviantart.net/db85/th/pre/i/2016/295/b/0/tinder_super_like_star_by_topher147-dalwd0y.png" : "http://emojipedia-us.s3.amazonaws.com/cache/16/22/1622b595a25ee401f56aa047cd4520eb.png").
-                withColor(61, 203, 204).
+                withColor((superlike ? 1 : 120), (superlike ? 182 : 177), (superlike ? 203 : 89)).
                 build();
     }
 
@@ -301,7 +311,8 @@ public class CommandCentral extends Main{
      */
     public IMessage cmd_messageDiscord(String message, IChannel channel, boolean alert, boolean masked) throws Exception{
         if(!masked){
-            return channel.sendMessage(alert ? "@everyone " + message : message);
+            //System.out.println(message + " " + channel.getID() + " " + alert + " " + masked);
+            return channel.sendMessage(alert ? ("@everyone " + message) : message);
         } else{
             String url="https://discordapp.com/api/webhooks/" + channel.getWebhooks().get(0).getID() + "/" + channel.getWebhooks().get(0).getToken();
             JSONObject msg = new JSONObject();

@@ -37,6 +37,10 @@ public class Postman {
             OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
             wr.write(data.toString());
             wr.flush();
+        } else if(metohd.equals("DELETE")){
+            con.connect();
+            System.out.println("DELETE " + String.valueOf(con.getResponseCode()));
+            return String.valueOf(con.getResponseCode());
         }
 
         StringBuilder sb = new StringBuilder();
@@ -50,7 +54,7 @@ public class Postman {
             }
             br.close();
             //System.out.println(sb.toString());
-            System.out.print("JSON get");
+            System.out.println("JSON get - " + con.getResponseCode());
         } else {
             System.out.println(con.getResponseMessage() + " - " + url);
         }

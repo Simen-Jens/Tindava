@@ -14,6 +14,7 @@ import java.time.Year;
  */
 public class JSON_Interpreter {
     private Tinder_Object tinder;
+    private int updateCouner = 0;
 
     public JSON_Interpreter(Tinder_Object tinder){
         this.tinder = tinder;
@@ -57,9 +58,9 @@ public class JSON_Interpreter {
         try(  PrintWriter out = new PrintWriter( "saved.json" )  ){
             out.println(json);
         }
-        //System.out.println("Data structure updated\nalert = " + tinder.alert + "\nTime used:" + (System.currentTimeMillis() - time) + "ms");
-        //tinder.alertME = false;
-        //cleanUpUnMatch(json);
+        tinder.alertME = updateCouner > 0 ? false : true;
+        cleanUpUnMatch(json);
+        updateCouner++;
     }
 
     public String readFile(String path, Charset encoding) throws IOException {
@@ -105,7 +106,8 @@ public class JSON_Interpreter {
             if(deleteFactor){
                 //this match can be deleted
                 System.out.println("removed one inactive match");
-                tinder.matches.get(i).myChannel.delete();
+                tinder.matches.get(i).unmatched();
+                //tinder.matches.get(i).myChannel.delete();
                 tinder.matches.remove(i);
                 clearance++;
                 i--;
