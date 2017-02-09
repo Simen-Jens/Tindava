@@ -58,6 +58,13 @@ public class Tinder_Object {
             this.superlike = superlike;
         }
 
+        public void unmatch() throws Exception{
+            //thank the overlords for garbage collector
+            cmd.pat.handleData(("https://api.gotinder.com/users/matches/" + matchID), "DELETE", new JSONObject());
+            myChannel.delete();
+            matches.remove(this);
+        }
+
         public void sendMessage(String s) throws Exception{
             JSONObject msg = new JSONObject();
             msg.put("message", s);
@@ -136,28 +143,21 @@ public class Tinder_Object {
         if(alert){
             IChannel tmp = cmd.cmd_createChannel(name, name, image.substring(0, image.indexOf("\n")), guild);
             IMessage firstmsg = cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\nSUPER: " + superlike + "```"), tmp, false, false);
-
-            if(superlike){
-                cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/6VsMgAL.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true/*change this to false if you hate @everyone*/, false);
-                firstmsg.addReaction("\ud83d\udc99");
-            } else{
-                cmd.cmd_messageDiscord(("\nhttp://i.imgur.com/HUirNMb.png\n<#" + tmp.getID() + ">\n```\n -ID: " + id + "\n -Name: " + name + "\n -Age: " + age + "\n -Bio: " + bio + "\n```"), guild.getChannels().get(0), true/*change this to false if you hate @everyone*/, false);
+            try{
+                guild.getChannels().get(0).sendMessage("**New match!**", cmd.buildMatchMessage(cmd.sanitize(name), bio, age, superlike, image.substring(0, image.indexOf("\n"))), false);
+            } catch (Exception ex){
+                cmd.cmd_messageDiscord(("Got new match, could not create embed... <#" + tmp.getID() + ">"), guild.getChannels().get(0), false, false);
             }
-
             tmp.pin(firstmsg);
             matches.add(new Match(id, tmp, name, bio, age, image, superlike, firstmsg));
         } else{
-            String s1 = Normalizer.normalize(name, Normalizer.Form.NFKD);
-            String regex = "[\\p{InCombiningDiacriticalMarks}\\p{IsLm}\\p{IsSk}]+";
-            String sanitizedName = new String(s1.replaceAll(regex, "").getBytes("ascii"), "ascii").toLowerCase().replace("?","o");
-
             System.out.print("assign match " + name);
             IChannel tmp = null;
-            for(int i = 0; i < guild.getChannelsByName(sanitizedName).size(); i++){
+            for(int i = 0; i < guild.getChannelsByName(cmd.sanitize(name)).size(); i++){
                 System.out.print(" " + i + ",");
-                if(guild.getChannelsByName(sanitizedName).get(i).getPinnedMessages().size() > 0){
-                    if(guild.getChannelsByName(sanitizedName).get(i).getPinnedMessages().get(0).getContent().contains(id)){
-                        tmp = guild.getChannelsByName(sanitizedName).get(i);
+                if(guild.getChannelsByName(cmd.sanitize(name)).get(i).getPinnedMessages().size() > 0){
+                    if(guild.getChannelsByName(cmd.sanitize(name)).get(i).getPinnedMessages().get(0).getContent().contains(id)){
+                        tmp = guild.getChannelsByName(cmd.sanitize(name)).get(i);
                         System.out.println();
                         matches.add(new Match(id, tmp, name, bio, age, image, superlike, tmp.getPinnedMessages().get(0)));
                         break;

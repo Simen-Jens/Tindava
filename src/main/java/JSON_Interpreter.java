@@ -58,8 +58,8 @@ public class JSON_Interpreter {
             out.println(json);
         }
         //System.out.println("Data structure updated\nalert = " + tinder.alert + "\nTime used:" + (System.currentTimeMillis() - time) + "ms");
-        tinder.alertME = false;
-        cleanUpUnMatch(json);
+        //tinder.alertME = false;
+        //cleanUpUnMatch(json);
     }
 
     public String readFile(String path, Charset encoding) throws IOException {

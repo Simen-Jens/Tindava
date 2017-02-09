@@ -1,9 +1,14 @@
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.obj.Embed;
 import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.Image;
 
 import java.text.Normalizer;
+import java.util.Arrays;
 
 import static java.lang.Thread.sleep;
 
@@ -59,7 +64,7 @@ public class CommandCentral extends Main{
         // 1
         String[] message = event.getMessage().getContent().split(" ");
         // 2
-        if(message[0].equals("<@" + client.getOurUser().getID() + ">") || message[0].equals("\uD83D\uDD25")){
+        if(message[0].equals("\uD83D\uDD25")){
             // A    - create client
             if(message[1].equals("create") && message[2].equals("channel")){
                 if(message.length != 6){
@@ -118,61 +123,71 @@ public class CommandCentral extends Main{
                 }
                 cmd_purge(event, Integer.parseInt(message[2]));
             }
-            // G    - add match
-            /* REDACTED*/
-            // H    - request update
-            else if(message[1].equals("request") && message[2].equals("update")){
-                if(message.length != 4){
-                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <json>", event.getMessage().getChannel(), false, false);
-                    return;
-                }
-                if(message[3].equals("!auth!")){
-                    System.out.println("SENT FOR");
-                    if(pat != null){
-                        cmd_messageDiscord((pat.auth() ? "login success" : pat.xauth != null ? "xauth token supplied, skipping login" : "login failed"), event.getMessage().getChannel(), false, false);
-                    } else{
-                        cmd_messageDiscord(":postal_horn: Missing postman, supply bot with a love letter :love_letter: (facebook token + id or a tinder xauth-token)", event.getMessage().getChannel(), false, false);
+            // G    - unmatch
+            else if (message[1].equals("unmatch")) {
+                for(int i = 0; i < tndr.matches.size(); i++){
+                    if(tndr.matches.get(i).myChannel == event.getMessage().getChannel()){
+                        tndr.matches.get(i).unmatch();
                         return;
                     }
-                    if(pat.xauth != null){
-                        // login a-ok
-                        interp.updateTinderFromFile();
-                        updater.start();
+                }
+                cmd_messageDiscord("Can't delete this match", event.getMessage().getGuild().getChannels().get(0), false, false);
+            }
+            // H    - request update
+            else {
+                if (message[1].equals("request") && message[2].equals("update")) {
+                    if (message.length != 4) {
+                        cmd_messageDiscord("expected 1 paramters, got " + (message.length - 3) + ". <json>", event.getMessage().getChannel(), false, false);
+                        return;
                     }
-                } else{
-                    interp.updateTinder(message[3]);
+                    if (message[3].equals("!auth!")) {
+                        System.out.println("SENT FOR");
+                        if (pat != null) {
+                            cmd_messageDiscord((pat.auth() ? "login success" : pat.xauth != null ? "xauth token supplied, skipping login" : "login failed"), event.getMessage().getChannel(), false, false);
+                        } else {
+                            cmd_messageDiscord(":postal_horn: Missing postman, supply bot with a love letter :love_letter: (facebook token + id or a tinder xauth-token)", event.getMessage().getChannel(), false, false);
+                            return;
+                        }
+                        if (pat.xauth != null) {
+                            // login a-ok
+                            interp.updateTinderFromFile();
+                            updater.start();
+                        }
+                    } else {
+                        interp.updateTinder(message[3]);
+                    }
                 }
-            }
-            // I    - remove chats
-            else if(message[1].equals("remove") && message[2].equals("chats")){
-                cmd_removeChats(event);
-            }
-            // J    - toggle chat
-            else if(message[1].equals("toggle") && message[2].equals("chat")){
-                if(event.getMessage().getAuthor().getID().equals(event.getMessage().getGuild().getOwnerID())){
-                    chattoggle = !chattoggle;
-                    cmd_messageDiscord((chattoggle ? ":negative_squared_cross_mark: chat is now disabled" : ":white_check_mark: chat is now enabled"), event.getMessage().getChannel(), false, false);
-                } else{
-                    cmd_messageDiscord(("only server owner can toggle chat"), event.getMessage().getChannel(), false, false);
+                // I    - remove chats
+                else if (message[1].equals("remove") && message[2].equals("chats")) {
+                    cmd_removeChats(event);
                 }
-            }
-            // K    - stops the update thread
-            else if(message[1].equals("toggle") && message[2].equals("updates")){
-                updater.runn = !updater.runn;
-                event.getMessage().addReaction("\u2714");
-                cmd_messageDiscord((":ok_hand: update thread `runn = " + updater.runn + "`"), event.getMessage().getChannel(), false, false);
-            }
-            // L    - temp method to disable alerts for your own id
-            else if(message[1].equals("t_o_alert")){
-                tndr.alertME = false;
-                event.getMessage().addReaction("\ud83d\udc4c");
-            }
-            // M    - requests recommendations from Tinder and swipes right on all of them
-            else if(message[1].equals("swipe")){
-                if(swiper != null){
-                    swiper.swipeAll();
-                } else{
-                    cmd_messageDiscord(("need to login :broken_heart:"), event.getMessage().getChannel(), false, false);
+                // J    - toggle chat
+                else if (message[1].equals("toggle") && message[2].equals("chat")) {
+                    if (event.getMessage().getAuthor().getID().equals(event.getMessage().getGuild().getOwnerID())) {
+                        chattoggle = !chattoggle;
+                        cmd_messageDiscord((chattoggle ? ":negative_squared_cross_mark: chat is now disabled" : ":white_check_mark: chat is now enabled"), event.getMessage().getChannel(), false, false);
+                    } else {
+                        cmd_messageDiscord(("only server owner can toggle chat"), event.getMessage().getChannel(), false, false);
+                    }
+                }
+                // K    - stops the update thread
+                else if (message[1].equals("toggle") && message[2].equals("updates")) {
+                    updater.runn = !updater.runn;
+                    event.getMessage().addReaction("\u2714");
+                    cmd_messageDiscord((":ok_hand: update thread `runn = " + updater.runn + "`"), event.getMessage().getChannel(), false, false);
+                }
+                // L    - temp method to disable alerts for your own id
+                else if (message[1].equals("t_o_alert")) {
+                    tndr.alertME = false;
+                    event.getMessage().addReaction("\ud83d\udc4c");
+                }
+                // M    - requests recommendations from Tinder and swipes right on all of them
+                else if (message[1].equals("swipe")) {
+                    if (swiper != null) {
+                        swiper.swipeAll();
+                    } else {
+                        cmd_messageDiscord(("need to login :broken_heart:"), event.getMessage().getChannel(), false, false);
+                    }
                 }
             }
         }
@@ -221,13 +236,26 @@ public class CommandCentral extends Main{
         updater.pulls = 0;
     }
 
+    public EmbedObject buildMatchMessage(String name, String bio, int age, boolean superlike, String image){
+        return new EmbedBuilder().
+                withAuthorName(name).
+                appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
+                withImage(image).
+                withThumbnail(superlike ? "http://pre01.deviantart.net/db85/th/pre/i/2016/295/b/0/tinder_super_like_star_by_topher147-dalwd0y.png" : "http://emojipedia-us.s3.amazonaws.com/cache/16/22/1622b595a25ee401f56aa047cd4520eb.png").
+                withColor(61, 203, 204).
+                build();
+    }
+
     public boolean cmd_removeChats(MessageReceivedEvent event) throws Exception{
         for(int i = 0; i < event.getMessage().getGuild().getChannels().size(); i++){
             if(!defaultChannels.contains(event.getMessage().getGuild().getChannels().get(i).getID())){
-                event.getMessage().getGuild().getChannels().get(i).delete();
+                try {
+                    event.getMessage().getGuild().getChannels().get(i).delete();
+                } catch (Exception ex){}
                 return cmd_removeChats(event);
             }
         }
+        //event.getMessage().getGuild().getChannels().get(0).sendMessage("**New match!**", buildMatchMessage("Malin", "hehe", 18, false, "http://s14.favim.com/610/160207/babygirl-big-boys-brown-hair-Favim.com-3969829.jpg"), false);
         System.out.println("Done removing chats");
         return true;
     }
@@ -260,12 +288,8 @@ public class CommandCentral extends Main{
         /*
             Tusen takk hÅkon for at du bruker en tullete bokstav i navnet ditt... Lærer meg å sanitize strings
          */
-        String s1 = Normalizer.normalize(name, Normalizer.Form.NFKD);
-        String regex = "[\\p{InCombiningDiacriticalMarks}\\p{IsLm}\\p{IsSk}]+";
-        String sanitizedName = new String(s1.replaceAll(regex, "").getBytes("ascii"), "ascii").toLowerCase().replace("?","o");
-        sanitizedName = sanitizedName.substring(0, 1).toUpperCase() + sanitizedName.substring(1);
-
-        System.out.println("!! MOTHERFUCKER - " + hookName + " !!\n sanitized " + sanitizedName);
+        //String sanitizedName = sanitize(name).substring(0, 1).toUpperCase() + sanitize(name).substring(1);
+        String sanitizedName = sanitize(name);
 
         IChannel tmp = guild.createChannel(sanitizedName);
         tmp.createWebhook(sanitizedName, hookImage).changeDefaultAvatar(Image.forUrl("jpg",hookImage));
@@ -304,5 +328,26 @@ public class CommandCentral extends Main{
         }
 
         cmd_messageDiscord(build, user.getOrCreatePMChannel(), false, false);
+    }
+
+    public String sanitize(String sIn) throws Exception{
+        String[] tbNom = sIn.split("");
+        String[] illgChar = "ç,æ,œ,á,é,í,ó,ú,à,è,ì,ò,ù,ä,ë,ï,ö,ü,ÿ,â,ê,î,ô,û,å,ø,Ø,Å,Á,À,Â,Ä,È,É,Ê,Ë,Í,Î,Ï,Ì,Ò,Ó,Ô,Ö,Ú,Ù,Û,Ü,Ÿ,Ç,Æ,Œ".split(",");
+        String[] lgChar = "c,ae,oe,a,e,i,o,u,a,e,i,o,u,a,e,i,o,u,y,a,e,i,o,u,a,o,O,A,A,A,A,A,E,E,E,E,I,I,I,I,O,O,O,O,U,U,U,U,Y,C,AE,OE".split(",");
+
+        for(int i = 0; i < tbNom.length; i++){
+            for(int k = 0; k < illgChar.length; k++){
+                if(illgChar[k].contains(tbNom[i])){
+                    tbNom[i] = lgChar[k];
+                }
+            }
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for(String s : tbNom) {
+            builder.append(s);
+        }
+
+        return Normalizer.normalize(builder.toString(), Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
     }
 }
