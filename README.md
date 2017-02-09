@@ -55,9 +55,6 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 `🔥 purge <number>`<br />
 *deletes messages in the chat based on number given*
 
-~~`🔥 add match <tinder id>`~~<br />
-~~*calls the method for adding a match with specified id, will NOT actually make you a match*~~
-
 `🔥 request update <full json data | !auth!>`<br />
 *will read the given json data (see <a href="#JSON-data-format">json data format</a> for more info) and create messages / matches appropriately. If supplied with `!auth!` instead it will use the facebook credentials / xauth to pull json directly from tinder*<br />
 <sub>__THIS IS HOW YOU "START" THE BOT__</sub>
