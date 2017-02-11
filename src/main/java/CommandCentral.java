@@ -186,7 +186,7 @@ public class CommandCentral extends Main{
                     event.getMessage().addReaction("\ud83d\udc4c");
                 }
                 // M    - requests recommendations from Tinder and swipes right on all of them
-                else if (message[1].equals("swipe")) {
+                else if (message[1].equals("swipe") && message[2].equals("all")) {
                     if (swiper != null) {
                         swiper.swipeAll();
                     } else {
@@ -195,14 +195,14 @@ public class CommandCentral extends Main{
                 } else if (message[1].equals("organize")){
                     organizeChannels(client.getGuilds().get(0).getChannels());
                 } else if (message[1].equals("unmatch") && message[2].equals("all")){
-
+                    swiper.unmatchAll();
                 } else if (message[1].equals("test")){
                     swiper.postRecom();
                 }
             }
         }
         // 3    - the block that controls messages that does not have a prefix i.e messages that are meant for matches
-        else if((!defaultChannels.contains(event.getMessage().getChannel().getID()))) {
+        else if((!settings.defaultChannels.contains(event.getMessage().getChannel().getID()))) {
             if (!event.getMessage().getChannel().isPrivate()) {
                 if (!event.getMessage().getAuthor().isBot()) {
                     if (!chattoggle) {
@@ -213,7 +213,7 @@ public class CommandCentral extends Main{
              */
                         boolean doorman = false;
                         for (int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++) {
-                            if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals(messageRole)) {
+                            if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals(settings.messageRole)) {
                                 doorman = true;
                                 break;
                             }
@@ -276,8 +276,8 @@ public class CommandCentral extends Main{
             channels.get(u).changePosition(u);
         }
 
-        for(int u = defaultChannels.split(" ").length-1; u >= 0 ; u--){
-            client.getChannelByID(defaultChannels.split(" ")[u]).changePosition(-1);
+        for(int u = settings.defaultChannels.split(" ").length-1; u >= 0 ; u--){
+            client.getChannelByID(settings.defaultChannels.split(" ")[u]).changePosition(-1);
         }
         System.out.println("\nDone sorting matches");
     }
@@ -287,8 +287,10 @@ public class CommandCentral extends Main{
                 withAuthorName(name).
                 appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
                 withImage(image).
-                withThumbnail("http://emojipedia-us.s3.amazonaws.com/cache/51/3a/513a734baf098ead6eb961f8d4092fc3.png").
-                withColor(213, 90, 112).
+                withThumbnail(settings.unMatchThumb).
+                /*withThumbnail("http://emojipedia-us.s3.amazonaws.com/cache/51/3a/513a734baf098ead6eb961f8d4092fc3.png").
+                withColor(213, 90, 112).*/
+                withColor(settings.unMatchColor).
                 build();
     }
 
@@ -297,8 +299,10 @@ public class CommandCentral extends Main{
                 withAuthorName(name).
                 appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
                 withImage(image).
-                withThumbnail(superlike ? "http://pre01.deviantart.net/db85/th/pre/i/2016/295/b/0/tinder_super_like_star_by_topher147-dalwd0y.png" : "http://emojipedia-us.s3.amazonaws.com/cache/16/22/1622b595a25ee401f56aa047cd4520eb.png").
-                withColor((superlike ? 1 : 120), (superlike ? 182 : 177), (superlike ? 203 : 89)).
+                withThumbnail(superlike ? settings.superMatchThumb : settings.defaultMatchThumb).
+                /*withThumbnail(superlike ? "http://pre01.deviantart.net/db85/th/pre/i/2016/295/b/0/tinder_super_like_star_by_topher147-dalwd0y.png" : "http://emojipedia-us.s3.amazonaws.com/cache/16/22/1622b595a25ee401f56aa047cd4520eb.png").
+                withColor((superlike ? 1 : 120), (superlike ? 182 : 177), (superlike ? 203 : 89))*/
+                withColor(superlike ? settings.superMatchColor : settings.defaultMatchColor).
                 build();
     }
 
@@ -308,7 +312,7 @@ public class CommandCentral extends Main{
             idList[i] = event.getMessage().getGuild().getChannels().get(i).getID();
         }
         for(String s : idList){
-            if (!defaultChannels.contains(s))event.getMessage().getGuild().getChannelByID(s).delete();
+            if (!settings.defaultChannels.contains(s))event.getMessage().getGuild().getChannelByID(s).delete();
         }
         System.out.println("Done removing chats");
         return true;
@@ -342,7 +346,7 @@ public class CommandCentral extends Main{
 
         IChannel tmp = guild.createChannel(sanitizedName);
         tmp.createWebhook(sanitizedName, hookImage).changeDefaultAvatar(Image.forUrl("jpg",hookImage));
-        organizeChannels(client.getGuilds().get(0).getChannels());
+        //organizeChannels(client.getGuilds().get(0).getChannels());
         return tmp;
     }
 

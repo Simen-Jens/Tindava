@@ -8,18 +8,11 @@ import sx.blah.discord.util.DiscordException;
  */
 public class Main {
     public static IDiscordClient client; // The instance of the discord client.
-    public static String defaultChannels;
-    public static String messageRole;
+    public static Settings settings = new Settings();
 
     public static void main(String[] args) {
-        /*
-            0 = bot token
-            1 = default channels
-         */
-
-        login(args[0]);
-        defaultChannels = args[1];
-        messageRole = args[2];
+        System.out.println(settings.defaultChannels);
+        login(settings.botToken);
 
         EventDispatcher dispatcher = client.getDispatcher();
         dispatcher.registerListener(new AnnotationListener(client));

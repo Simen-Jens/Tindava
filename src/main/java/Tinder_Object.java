@@ -63,10 +63,16 @@ public class Tinder_Object {
 
         public void unmatched() throws Exception{
             EmbedBuilder tmp = new EmbedBuilder();
+            /*
             tmp.withColor(231, 57, 69);
             tmp.withTitle("Unmatched");
             tmp.withDescription("aw nuts...");
             tmp.withImage("http://i.imgur.com/pAi00xj.png");
+            */
+            tmp.withColor(cmd.settings.unMatchColorIMC);
+            tmp.withTitle(cmd.settings.unMatchTitleIMC);
+            tmp.withDescription(cmd.settings.unMatchDescIMC);
+            tmp.withImage(cmd.settings.unMatchImageIMC);
             myChannel.sendMessage("", tmp.build(), false);
 
             try{
@@ -164,9 +170,9 @@ public class Tinder_Object {
             IMessage firstmsg = cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\nSUPER: " + superlike + "```"), tmp, false, false);
             IMessage notiMSG = null;
             try{
-                notiMSG = guild.getChannelByID(cmd.defaultChannels.split(" ")[0]).sendMessage("**New match!** " + tmp.mention(), cmd.buildMatchMessage(cmd.sanitize(name), bio, age, superlike, image.substring(0, image.indexOf("\n"))), false);
+                notiMSG = guild.getChannelByID(cmd.settings.defaultChannels.split(" ")[0]).sendMessage("**New match!** " + tmp.mention(), cmd.buildMatchMessage(cmd.sanitize(name), bio, age, superlike, image.substring(0, image.indexOf("\n"))), false);
             } catch (Exception ex){
-                notiMSG = cmd.cmd_messageDiscord(("Got new match, could not create embed... <#" + tmp.getID() + ">"), guild.getChannelByID(cmd.defaultChannels.split(" ")[0]), false, false);
+                notiMSG = cmd.cmd_messageDiscord(("Got new match, could not create embed... <#" + tmp.getID() + ">"), guild.getChannelByID(cmd.settings.defaultChannels.split(" ")[0]), false, false);
             }
             tmp.pin(firstmsg);
             matches.add(new Match(id, tmp, name, bio, age, image, superlike, notiMSG));
@@ -191,7 +197,6 @@ public class Tinder_Object {
 
         }
         System.out.println();
-        cmd.client.changeStatus(Status.game("with " + matches.size() + " matches"));
         return matches.get(matches.size()-1);
     }
 }

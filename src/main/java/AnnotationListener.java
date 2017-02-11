@@ -5,6 +5,7 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.TypingEvent;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.Status;
 
 /**
  * Created by Simen (Scoop#8831) on 05.02.2017.
@@ -25,7 +26,7 @@ public class AnnotationListener extends Main {
             IUser ourUser = client.getOurUser();// Gets the user represented by the client
             String name = ourUser.getName();// Gets the name of our user
             System.out.println("Logged in as " + name);
-            //client.changeStatus(Status.game("with " + (client.getGuilds().get(0).getChannels().size()-2) + " matches"));
+            client.changeStatus(Status.game("with no credentials"));
             cmd.initDone();
         }
 

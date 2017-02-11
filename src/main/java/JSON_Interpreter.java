@@ -1,5 +1,6 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
+import sx.blah.discord.handle.obj.Status;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -20,9 +21,10 @@ public class JSON_Interpreter {
     }
 
     public void updateTinderFromFile() throws Exception{
+        tinder.cmd.client.changeStatus(Status.game("previous cache"));
         System.out.println("reading cache");
         tinder.myID = tinder.cmd.pat.myID;
-        String empty = readFile("saved.json", StandardCharsets.UTF_8);
+        String empty = readFile(tinder.cmd.settings.cache_path, StandardCharsets.UTF_8);
         tinder.alert = false;
         updateTinder(empty);
         tinder.alert = true;
@@ -33,28 +35,30 @@ public class JSON_Interpreter {
         JSONArray matches = updates.getJSONArray("matches");
 
         for(int i = 0; i < matches.length(); i++){
-            try {
-                JSONObject thisMatch = new JSONObject(matches.get(i).toString());
-                String images = "";
-                for (int k = 0; k < thisMatch.getJSONObject("person").getJSONArray("photos").length(); k++) {
-                    images += (thisMatch.getJSONObject("person").getJSONArray("photos").getJSONObject(k).getJSONArray("processedFiles").getJSONObject(0).getString("url") + "\n");
-                }
-                thisMatch.getJSONObject("person");
-                Tinder_Object.Match thisMatchObject = tinder.addMatch(thisMatch.getString("_id"), thisMatch.getJSONObject("person").getString("name"), thisMatch.getJSONObject("person").getString("bio"), (Year.now().getValue() - (Integer.parseInt(thisMatch.getJSONObject("person").getString("birth_date").substring(0, 4)))), images, thisMatch.getBoolean("is_super_like"));
+            if(!tinder.cmd.settings.excludeName.contains(matches.getJSONObject(i).getJSONObject("person").getString("name")) && i >= tinder.cmd.settings.excludeBefore && tinder.cmd.settings.excludeAfter <= i) {
+                try {
+                    JSONObject thisMatch = new JSONObject(matches.get(i).toString());
+                    String images = "";
+                    for (int k = 0; k < thisMatch.getJSONObject("person").getJSONArray("photos").length(); k++) {
+                        images += (thisMatch.getJSONObject("person").getJSONArray("photos").getJSONObject(k).getJSONArray("processedFiles").getJSONObject(0).getString("url") + "\n");
+                    }
+                    thisMatch.getJSONObject("person");
+                    Tinder_Object.Match thisMatchObject = tinder.addMatch(thisMatch.getString("_id"), thisMatch.getJSONObject("person").getString("name"), thisMatch.getJSONObject("person").getString("bio"), (Year.now().getValue() - (Integer.parseInt(thisMatch.getJSONObject("person").getString("birth_date").substring(0, 4)))), images, thisMatch.getBoolean("is_super_like"));
 
-                JSONArray messages = thisMatch.getJSONArray("messages");
-                for (int k = 0; k < messages.length(); k++) {
-                    JSONObject thisMessage = new JSONObject(messages.get(k).toString());
-                    thisMatchObject.addMessage(thisMessage.getString("_id"), thisMessage.getString("match_id"), thisMessage.getString("to"), thisMessage.getString("from"), tinder.cmd.sanitize(thisMessage.getString("message")), thisMessage.getString("sent_date"), thisMessage.getString("created_date"), thisMessage.getString("timestamp"));
+                    JSONArray messages = thisMatch.getJSONArray("messages");
+                    for (int k = 0; k < messages.length(); k++) {
+                        JSONObject thisMessage = new JSONObject(messages.get(k).toString());
+                        thisMatchObject.addMessage(thisMessage.getString("_id"), thisMessage.getString("match_id"), thisMessage.getString("to"), thisMessage.getString("from"), tinder.cmd.sanitize(thisMessage.getString("message")), thisMessage.getString("sent_date"), thisMessage.getString("created_date"), thisMessage.getString("timestamp"));
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    System.out.println(ex);
+                    System.out.println("Error, I've had so many problems in the try-block... I don't even know where to begin");
                 }
-            } catch (Exception ex){
-                ex.printStackTrace();
-                System.out.println(ex);
-                System.out.println("Error, I've had so many problems in the try-block... I don't even know where to begin");
             }
         }
 
-        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("saved.json"), "UTF-8"));
+        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tinder.cmd.settings.cache_path), "UTF-8"));
         try {
             out.write(json);
         } finally {
@@ -64,6 +68,7 @@ public class JSON_Interpreter {
         tinder.alertME = updateCouner > 0 ? false : true;
         cleanUpUnMatch(json);
         updateCouner++;
+        tinder.cmd.client.changeStatus(Status.game(tinder.matches.size() + " matches"));
     }
 
     public String readFile(String path, Charset encoding) throws IOException {
