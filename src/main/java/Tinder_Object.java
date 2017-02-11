@@ -4,6 +4,7 @@ import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.Status;
 import sx.blah.discord.util.EmbedBuilder;
+import sx.blah.discord.util.RateLimitException;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import static java.lang.Thread.sleep;
  */
 
 /**
- * Created by Scoop on 05.02.2017.
+ * Created by Simen (Scoop#8831) on 05.02.2017.
  */
 public class Tinder_Object {
     public boolean alert = true;
@@ -67,6 +68,10 @@ public class Tinder_Object {
             tmp.withDescription("aw nuts...");
             tmp.withImage("http://i.imgur.com/pAi00xj.png");
             myChannel.sendMessage("", tmp.build(), false);
+
+            try{
+                profileMessage.edit("~~**New match!**~~ unmatched", cmd.unmatchMessageObject(name, bio, age, images[0]));
+            } catch (Exception ex){}
         }
 
         public void unmatch() throws Exception{
@@ -99,7 +104,7 @@ public class Tinder_Object {
                     } catch (Exception ex){
                         System.out.println("TIMED OUT - RETRYING");
                         try{
-                            sleep(2000);
+                            sleep(3000);
                         } catch (Exception ex2){
                             System.out.println("zZzzZZZzzzZ error sleeping (ln 66)");
                         }
@@ -107,17 +112,19 @@ public class Tinder_Object {
                     }
                 } else{
                     if(alertME) {
-                        //you probably don't want this part, it would possibly duplicate messages. Comment out the whole block if needed
                         try {
-                            cmd.cmd_messageDiscord(messageContent, myChannel, false, false);
-                        } catch (Exception ex) {
+                            myChannel.sendMessage(messageContent);
+                        } catch (RateLimitException ex) {
                             System.out.println("TIMED OUT - RETRYING");
                             try {
-                                sleep(2000);
+                                sleep(3000);
                             } catch (Exception ex2) {
                                 System.out.println("zZzzZZZzzzZ error sleeping (ln 81)");
                             }
                             return addMessage(messageID, matchID, to_matchID, from_matchID, messageContent, sent_date, created_date, timestamp);
+                        } catch (Exception ex){
+                            ex.printStackTrace();
+                            System.out.println("Unknown error, moving on to next match");
                         }
                     }
                 }
@@ -155,19 +162,20 @@ public class Tinder_Object {
         if(alert){
             IChannel tmp = cmd.cmd_createChannel(name, name, image.substring(0, image.indexOf("\n")), guild);
             IMessage firstmsg = cmd.cmd_messageDiscord((image + "\n```\n{\"matchid\":\"" + id + "\"}\n\nNAME: " + name +"\nAGE: " + age +"\nBIO: " + bio + "\nSUPER: " + superlike + "```"), tmp, false, false);
+            IMessage notiMSG = null;
             try{
-                guild.getChannelByID(cmd.defaultChannels.split(" ")[0]).sendMessage("**New match!**", cmd.buildMatchMessage(cmd.sanitize(name), bio, age, superlike, image.substring(0, image.indexOf("\n"))), false);
+                notiMSG = guild.getChannelByID(cmd.defaultChannels.split(" ")[0]).sendMessage("**New match!** " + tmp.mention(), cmd.buildMatchMessage(cmd.sanitize(name), bio, age, superlike, image.substring(0, image.indexOf("\n"))), false);
             } catch (Exception ex){
-                cmd.cmd_messageDiscord(("Got new match, could not create embed... <#" + tmp.getID() + ">"), guild.getChannelByID(cmd.defaultChannels.split(" ")[0]), false, false);
+                notiMSG = cmd.cmd_messageDiscord(("Got new match, could not create embed... <#" + tmp.getID() + ">"), guild.getChannelByID(cmd.defaultChannels.split(" ")[0]), false, false);
             }
             tmp.pin(firstmsg);
-            matches.add(new Match(id, tmp, name, bio, age, image, superlike, firstmsg));
+            matches.add(new Match(id, tmp, name, bio, age, image, superlike, notiMSG));
         } else{
             System.out.print("assign match " + name);
             IChannel tmp = null;
             if(guild.getChannelsByName(cmd.sanitize(name).toLowerCase()).size() < 1){
-                System.out.println(" !!" + cmd.sanitize(name) + " < 1!!\ncant add this match");
-                return null;
+                System.out.println(" !!" + cmd.sanitize(name) + " < 1!!\ncant find this match");
+                return null;    //will cause a nullpointerexception......
             }
             for(int i = 0; i < guild.getChannelsByName(cmd.sanitize(name).toLowerCase()).size(); i++){
                 System.out.print(" " + i + ",");

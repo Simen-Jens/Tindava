@@ -4,11 +4,12 @@ import sx.blah.discord.api.events.EventDispatcher;
 import sx.blah.discord.util.DiscordException;
 
 /**
- * Created by Scoop on 05.02.2017.
+ * Created by Simen (Scoop#8831) on 05.02.2017.
  */
 public class Main {
     public static IDiscordClient client; // The instance of the discord client.
     public static String defaultChannels;
+    public static String messageRole;
 
     public static void main(String[] args) {
         /*
@@ -18,6 +19,7 @@ public class Main {
 
         login(args[0]);
         defaultChannels = args[1];
+        messageRole = args[2];
 
         EventDispatcher dispatcher = client.getDispatcher();
         dispatcher.registerListener(new AnnotationListener(client));

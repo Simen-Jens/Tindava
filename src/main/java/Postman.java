@@ -7,13 +7,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Created by Scoop on 07.02.2017.
+ * Created by Simen (Scoop#8831) on 07.02.2017.
  */
 public class Postman {
     private String token;
     private String id;
     public String xauth;
-    public String myID; //will use this later (see ln 65)
+    public String myID;
 
     public Postman(String token, String id){
         this.token = token;

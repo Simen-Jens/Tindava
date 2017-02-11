@@ -1,8 +1,7 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,7 +9,7 @@ import java.nio.file.Paths;
 import java.time.Year;
 
 /**
- * Created by Scoop on 05.02.2017.
+ * Created by Simen (Scoop#8831) on 05.02.2017.
  */
 public class JSON_Interpreter {
     private Tinder_Object tinder;
@@ -21,6 +20,7 @@ public class JSON_Interpreter {
     }
 
     public void updateTinderFromFile() throws Exception{
+        System.out.println("reading cache");
         tinder.myID = tinder.cmd.pat.myID;
         String empty = readFile("saved.json", StandardCharsets.UTF_8);
         tinder.alert = false;
@@ -29,8 +29,6 @@ public class JSON_Interpreter {
     }
 
     public void updateTinder(String json) throws Exception{
-        long time = System.currentTimeMillis();
-
         JSONObject updates = new JSONObject(json);
         JSONArray matches = updates.getJSONArray("matches");
 
@@ -47,17 +45,22 @@ public class JSON_Interpreter {
                 JSONArray messages = thisMatch.getJSONArray("messages");
                 for (int k = 0; k < messages.length(); k++) {
                     JSONObject thisMessage = new JSONObject(messages.get(k).toString());
-                    thisMatchObject.addMessage(thisMessage.getString("_id"), thisMessage.getString("match_id"), thisMessage.getString("to"), thisMessage.getString("from"), thisMessage.getString("message"), thisMessage.getString("sent_date"), thisMessage.getString("created_date"), thisMessage.getString("timestamp"));
+                    thisMatchObject.addMessage(thisMessage.getString("_id"), thisMessage.getString("match_id"), thisMessage.getString("to"), thisMessage.getString("from"), tinder.cmd.sanitize(thisMessage.getString("message")), thisMessage.getString("sent_date"), thisMessage.getString("created_date"), thisMessage.getString("timestamp"));
                 }
             } catch (Exception ex){
                 ex.printStackTrace();
                 System.out.println(ex);
-                System.out.println("Error, probably someone who deleted their Tinder / unmatched you :c");
+                System.out.println("Error, I've had so many problems in the try-block... I don't even know where to begin");
             }
         }
-        try(  PrintWriter out = new PrintWriter( "saved.json" )  ){
-            out.println(json);
+
+        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("saved.json"), "UTF-8"));
+        try {
+            out.write(json);
+        } finally {
+            out.close();
         }
+
         tinder.alertME = updateCouner > 0 ? false : true;
         cleanUpUnMatch(json);
         updateCouner++;

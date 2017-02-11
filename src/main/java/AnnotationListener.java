@@ -7,7 +7,7 @@ import sx.blah.discord.handle.impl.events.TypingEvent;
 import sx.blah.discord.handle.obj.IUser;
 
 /**
- * Created by Scoop on 05.02.2017.
+ * Created by Simen (Scoop#8831) on 05.02.2017.
  */
 public class AnnotationListener extends Main {
     private static CommandCentral cmd;

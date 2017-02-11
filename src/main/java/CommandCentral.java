@@ -1,31 +1,28 @@
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
-import sx.blah.discord.handle.impl.obj.Embed;
 import sx.blah.discord.handle.obj.*;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.Image;
 
 import java.text.Normalizer;
-import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Thread.sleep;
 
 
 /**
- * Created by Scoop on 05.02.2017.
+ * Created by Simen (Scoop#8831) on 05.02.2017.
  */
 public class CommandCentral extends Main{
     private String fb_id;
     private String fb_token;
     public JSON_Interpreter interp;
-    private Tinder_Object tndr;
+    public Tinder_Object tndr;
     public Postman pat;
     private boolean chattoggle = true;
     private Update_Thread updater = new Update_Thread(10000L, 10000L, this);
-    //private String ferdet = "";   --Use defaultChannels from Main instead
-    public Auto_Swipe swiper;
+    public Swipe_Control swiper;
 
     /*
     Called upon when the bot is ready
@@ -92,6 +89,7 @@ public class CommandCentral extends Main{
                 fb_id = message[3];
                 if(fb_token != null && fb_id != null){
                     pat = new Postman(fb_token, fb_id);
+                    swiper = new Swipe_Control(interp, pat, this);
                 }
                 event.getMessage().addReaction("\ud83d\udc4c");
                 //cmd_messageDiscord((":ok_hand: Facebook ID set to " + fb_id), event.getMessage().getChannel(), false, false);
@@ -105,6 +103,7 @@ public class CommandCentral extends Main{
                 fb_token = message[3];
                 if(fb_token != null && fb_id != null){
                     pat = new Postman(fb_token, fb_id);
+                    swiper = new Swipe_Control(interp, pat, this);
                 }
                 event.getMessage().addReaction("\ud83d\udc4c");
                 //cmd_messageDiscord((":ok_hand: Facebook Token set to " + fb_token), event.getMessage().getChannel(), false, false);
@@ -117,7 +116,7 @@ public class CommandCentral extends Main{
                 }
                 pat = new Postman(null, null);
                 pat.xauth = message[3];
-                swiper = new Auto_Swipe(interp, pat, this);
+                swiper = new Swipe_Control(interp, pat, this);
                 event.getMessage().addReaction("\ud83d\udc4c");
             }
             // F    - purge
@@ -177,9 +176,9 @@ public class CommandCentral extends Main{
                 }
                 // K    - stops the update thread
                 else if (message[1].equals("toggle") && message[2].equals("updates")) {
-                    updater.runn = !updater.runn;
+                    updater.toggle = !updater.toggle;
                     event.getMessage().addReaction("\u2714");
-                    cmd_messageDiscord((":ok_hand: update thread `runn = " + updater.runn + "`"), event.getMessage().getChannel(), false, false);
+                    cmd_messageDiscord((":ok_hand: update thread `runn = " + updater.toggle + "`"), event.getMessage().getChannel(), false, false);
                 }
                 // L    - temp method to disable alerts for your own id
                 else if (message[1].equals("t_o_alert")) {
@@ -193,6 +192,12 @@ public class CommandCentral extends Main{
                     } else {
                         cmd_messageDiscord(("need to login :broken_heart:"), event.getMessage().getChannel(), false, false);
                     }
+                } else if (message[1].equals("organize")){
+                    organizeChannels(client.getGuilds().get(0).getChannels());
+                } else if (message[1].equals("unmatch") && message[2].equals("all")){
+
+                } else if (message[1].equals("test")){
+                    swiper.postRecom();
                 }
             }
         }
@@ -208,7 +213,7 @@ public class CommandCentral extends Main{
              */
                         boolean doorman = false;
                         for (int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++) {
-                            if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals("278645767311196160")) {
+                            if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals(messageRole)) {
                                 doorman = true;
                                 break;
                             }
@@ -246,6 +251,47 @@ public class CommandCentral extends Main{
         updater.pulls = 0;
     }
 
+    public void organizeChannels(List<IChannel> channels) throws Exception{
+        System.out.print("Starting organize\nClient nodes sorted - .");
+        IChannel t;
+        int i, max = channels.size() -1;
+        for (int k = 0 ; k < max; k++) {
+            System.out.print(".");
+            if (channels.get(k).getName().compareTo(channels.get(k+1).getName()) > 0) {
+                t = channels.get(k+1);
+                i = k;
+
+                do{
+                    channels.remove(i+1);
+                    channels.add(i+1, channels.get(i));
+                    i--;
+                } while (i >= 0 && channels.get(i).getName().compareTo(t.getName()) > 0);
+                channels.remove(i+1);
+                channels.add(i+1, t);
+            }
+        }
+        System.out.print("\nServer nodes sorted - ");
+        for(int u = 0; u < channels.size(); u++){
+            System.out.print(".");
+            channels.get(u).changePosition(u);
+        }
+
+        for(int u = defaultChannels.split(" ").length-1; u >= 0 ; u--){
+            client.getChannelByID(defaultChannels.split(" ")[u]).changePosition(-1);
+        }
+        System.out.println("\nDone sorting matches");
+    }
+
+    public EmbedObject unmatchMessageObject(String name, String bio, int age, String image){
+        return new EmbedBuilder().
+                withAuthorName(name).
+                appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
+                withImage(image).
+                withThumbnail("http://emojipedia-us.s3.amazonaws.com/cache/51/3a/513a734baf098ead6eb961f8d4092fc3.png").
+                withColor(213, 90, 112).
+                build();
+    }
+
     public EmbedObject buildMatchMessage(String name, String bio, int age, boolean superlike, String image){
         return new EmbedBuilder().
                 withAuthorName(name).
@@ -257,15 +303,13 @@ public class CommandCentral extends Main{
     }
 
     public boolean cmd_removeChats(MessageReceivedEvent event) throws Exception{
+        String[] idList = new String[event.getMessage().getGuild().getChannels().size()];
         for(int i = 0; i < event.getMessage().getGuild().getChannels().size(); i++){
-            if(!defaultChannels.contains(event.getMessage().getGuild().getChannels().get(i).getID())){
-                try {
-                    event.getMessage().getGuild().getChannels().get(i).delete();
-                } catch (Exception ex){}
-                return cmd_removeChats(event);
-            }
+            idList[i] = event.getMessage().getGuild().getChannels().get(i).getID();
         }
-        //event.getMessage().getGuild().getChannels().get(0).sendMessage("**New match!**", buildMatchMessage("Malin", "hehe", 18, false, "http://s14.favim.com/610/160207/babygirl-big-boys-brown-hair-Favim.com-3969829.jpg"), false);
+        for(String s : idList){
+            if (!defaultChannels.contains(s))event.getMessage().getGuild().getChannelByID(s).delete();
+        }
         System.out.println("Done removing chats");
         return true;
     }
@@ -294,15 +338,11 @@ public class CommandCentral extends Main{
         if(hookName == null || hookName.equals(""))hookName = "UNKNOWN";
         if(hookImage == null)hookImage = "http://barabasilab.neu.edu/people/baruch/WebPage_files/Silhouette.jpg";
 
-
-        /*
-            Tusen takk hÅkon for at du bruker en tullete bokstav i navnet ditt... Lærer meg å sanitize strings
-         */
-        //String sanitizedName = sanitize(name).substring(0, 1).toUpperCase() + sanitize(name).substring(1);
         String sanitizedName = sanitize(name);
 
         IChannel tmp = guild.createChannel(sanitizedName);
         tmp.createWebhook(sanitizedName, hookImage).changeDefaultAvatar(Image.forUrl("jpg",hookImage));
+        organizeChannels(client.getGuilds().get(0).getChannels());
         return tmp;
     }
 
@@ -311,8 +351,12 @@ public class CommandCentral extends Main{
      */
     public IMessage cmd_messageDiscord(String message, IChannel channel, boolean alert, boolean masked) throws Exception{
         if(!masked){
-            //System.out.println(message + " " + channel.getID() + " " + alert + " " + masked);
-            return channel.sendMessage(alert ? ("@everyone " + message) : message);
+            try {
+                return channel.sendMessage(alert ? ("@everyone " + message) : message);
+            } catch (Exception ex){
+                ex.printStackTrace();
+            }
+            return null;
         } else{
             String url="https://discordapp.com/api/webhooks/" + channel.getWebhooks().get(0).getID() + "/" + channel.getWebhooks().get(0).getToken();
             JSONObject msg = new JSONObject();
