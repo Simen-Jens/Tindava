@@ -26,14 +26,58 @@ task fatJar(type: Jar) {
 
 Then run `gradle fatJar`
 
-# Args[]
-Supply Tindava with your BOT token from Discord (`args[0] = <token>` `args[1] = <default channel>`)
+# settings.json
+In the root directory for the compiled jar file you need a settings.json file.
 
-Example `java -jar Tindava.jar Mjc3NTuJiKKW9AWNDM3MzEy.C3lt9g.RbGELaaW9AfMflBl4VcIYNJ_Yt 277596483631579137`
+The settings.json allows you to set certain filters for which matches to display/look for and allows you to set roles and default channels (all channels other than "match channels" needs to be defined in this array). <br /> Default settings.json is:
+```json
+{
+	"bot_token": "",
+	"facebook_auth":"",
+	"facebook_id":"",
+	"xauth":null,
+	"send_stat":true,
 
+
+	"cache_path":"cache.json",
+	"empty_path":"empty.json",
+
+
+	"default_channels": [
+		""
+	],
+	"messenger_role": "",
+
+
+	"exclude_matches_with_name": [],
+	"exclude_first_int_matches": 0,
+	"excludes_last_int_matches": 50,
+
+
+	"default_match_color":"#78b159",
+	"default_match_thumb":"http://emojipedia-us.s3.amazonaws.com/cache/16/22/1622b595a25ee401f56aa047cd4520eb.png",
+
+	"super_match_color":"#01b6cb",
+	"super_match_thumb":"http://pre01.deviantart.net/db85/th/pre/i/2016/295/b/0/tinder_super_like_star_by_topher147-dalwd0y.png",
+
+	"unmatch_match_color":"#d55a70",
+	"unmatch_match_thumb":"http://emojipedia-us.s3.amazonaws.com/cache/51/3a/513a734baf098ead6eb961f8d4092fc3.png",
+
+    "unmatch_match_color_imc":"#e73945",
+	"unmatch_match_title_imc":"Unmatched",
+	"unmatch_match_desc_imc":"aw nuts...",
+	"unmatch_match_image_imc":"http://i.imgur.com/pAi00xj.png"
+}
+
+``` 
+<sub>please keep in mind that these settings are not sanitized in any way, you will break your bot if you supply it with illegal characters</sub></br >
+In order for the bot to work at a minimum:
+* `bot_token` needs to be filled out.
+* `default_channels` needs at least one channel ID (used for notifications).
+* `messenger_role`needs to be filled out (can be @everyone's ID).
 
 # Discord commands
-All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
+All commands can be invoked by 🔥(`:fire:`) as a prefix
 
 ### Commandlist (🔥 command <\required argument> [multiple | choice | argument] [optional argument] ###
 
@@ -69,14 +113,20 @@ All commands can be invoked by using @Tindava or 🔥(`:fire:`) as a prefix
 *toggles whether the bot will send messages to tinder matches when messaged*
 
 `🔥 toggle updates`<br />
-*toggles whether the update thread off/on*
+*toggles the update thread off/on*
 
 ~~`🔥 t_o_alert`<br />~~
 ~~*turn off alert, just mutes messages from yourself, use this command if you find that the bot duplicates your messages*~~<br />
 <sub>not needed anymore (still usable, should you experience issues)</sub>
 
-`🔥 swipe`<br />
+`🔥 swipe all`<br />
 *gets all recommendations from Tinder and swipes right, returns the amount of people swiped and how many swipes are left*
+
+`🔥 organize`<br />
+*organizes all text-channels lexicographically (default_channels remain at the top)*
+
+`🔥 unmatch all`<br />
+*removes all matches for the Tinder account*
 
 
 # JSON data format
