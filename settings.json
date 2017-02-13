@@ -1,0 +1,49 @@
+{
+	"bot_token": "",
+	"google_api_key": null,
+	"cleverbot_key": "",
+	"language": "en",
+
+	"facebook_email": "",
+	"facebook_password": "",
+	"autologin": true,
+
+	"facebook_auth": null,
+	"facebook_id": null,
+	"xauth": null,
+	"send_stat": false,
+
+
+	"cache_path": "cache.json",
+	"empty_path": "empty.json",
+	"pullrate_min": 10000,
+	"pullrate_max": 10000,
+
+
+	"default_channels": [
+		""
+	],
+	"messenger_role": "",
+	"hard_banned_users": [],
+	"system_color": "#ffffff",
+
+
+	"exclude_matches_with_name": [],
+	"exclude_first_int_matches": 72,
+	"exclude_last_int_matches": 0,
+
+
+	"default_match_color": "#78b159",
+	"default_match_thumb": "http://emojipedia-us.s3.amazonaws.com/cache/16/22/1622b595a25ee401f56aa047cd4520eb.png",
+
+	"super_match_color": "#01b6cb",
+	"super_match_thumb": "http://pre01.deviantart.net/db85/th/pre/i/2016/295/b/0/tinder_super_like_star_by_topher147-dalwd0y.png",
+
+	"unmatch_match_color": "#d55a70",
+	"unmatch_match_thumb": "http://emojipedia-us.s3.amazonaws.com/cache/51/3a/513a734baf098ead6eb961f8d4092fc3.png",
+
+	"unmatch_match_color_imc": "#e73945",
+	"unmatch_match_title_imc": "Unmatched",
+	"unmatch_match_desc_imc": "aw nuts...",
+	"unmatch_match_image_imc": "http://i.imgur.com/pAi00xj.png"
+}
