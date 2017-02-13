@@ -10,17 +10,13 @@ import java.net.URL;
  * Created by Simen (Scoop#8831) on 07.02.2017.
  */
 public class Postman {
-    private String token;
-    private String id;
+    public String facebookToken;
+    public String facebookID;
     public String xauth;
     public String myID;
 
-    public Postman(String token, String id){
-        this.token = token;
-        this.id = id;
-    }
 
-    public String handleData(String url, String metohd, JSONObject data) throws Exception{
+    synchronized public String handleData(String url, String metohd, JSONObject data) throws Exception{
         URL object=new URL(url);
         HttpURLConnection con = (HttpURLConnection) object.openConnection();
 
@@ -69,8 +65,8 @@ public class Postman {
             return true;
         } else {
             JSONObject tmp = new JSONObject();
-            tmp.put("facebook_token", token);
-            tmp.put("facebook_id", id);
+            tmp.put("facebook_token", facebookToken);
+            tmp.put("facebook_id", facebookID);
 
             String s = handleData("https://api.gotinder.com/auth", "POST", tmp);
             if (s.contains("token")) xauth = new JSONObject(s).getString("token");
@@ -79,5 +75,9 @@ public class Postman {
             //System.out.println(xauth);
             return s.contains("token");
         }
+    }
+
+    public void reAuthWithFacebook(){
+
     }
 }

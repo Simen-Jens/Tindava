@@ -21,10 +21,10 @@ public class JSON_Interpreter {
     }
 
     public void updateTinderFromFile() throws Exception{
-        tinder.cmd.client.changeStatus(Status.game("previous cache"));
+        tinder.cmd.client.changeStatus(Status.game("with previous cache"));
         System.out.println("reading cache");
         tinder.myID = tinder.cmd.pat.myID;
-        String empty = readFile(tinder.cmd.settings.cache_path, StandardCharsets.UTF_8);
+        String empty = readFile("empty.json", StandardCharsets.UTF_8);
         tinder.alert = false;
         updateTinder(empty);
         tinder.alert = true;
@@ -35,7 +35,7 @@ public class JSON_Interpreter {
         JSONArray matches = updates.getJSONArray("matches");
 
         for(int i = 0; i < matches.length(); i++){
-            if(!tinder.cmd.settings.excludeName.contains(matches.getJSONObject(i).getJSONObject("person").getString("name")) && i >= tinder.cmd.settings.excludeBefore && tinder.cmd.settings.excludeAfter <= i) {
+            if(!tinder.cmd.settings.excludeName.contains(matches.getJSONObject(i).getJSONObject("person").getString("name")) && i >= tinder.cmd.settings.excludeBefore && matches.length()-tinder.cmd.settings.excludeAfter >= i) {
                 try {
                     JSONObject thisMatch = new JSONObject(matches.get(i).toString());
                     String images = "";
@@ -48,7 +48,7 @@ public class JSON_Interpreter {
                     JSONArray messages = thisMatch.getJSONArray("messages");
                     for (int k = 0; k < messages.length(); k++) {
                         JSONObject thisMessage = new JSONObject(messages.get(k).toString());
-                        thisMatchObject.addMessage(thisMessage.getString("_id"), thisMessage.getString("match_id"), thisMessage.getString("to"), thisMessage.getString("from"), tinder.cmd.sanitize(thisMessage.getString("message")), thisMessage.getString("sent_date"), thisMessage.getString("created_date"), thisMessage.getString("timestamp"));
+                        thisMatchObject.addMessage(thisMessage.getString("_id"), thisMessage.getString("match_id"), thisMessage.getString("to"), thisMessage.getString("from"), thisMessage.getString("message"), thisMessage.getString("sent_date"), thisMessage.getString("created_date"), thisMessage.getString("timestamp"));
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -68,7 +68,7 @@ public class JSON_Interpreter {
         tinder.alertME = updateCouner > 0 ? false : true;
         cleanUpUnMatch(json);
         updateCouner++;
-        tinder.cmd.client.changeStatus(Status.game(tinder.matches.size() + " matches"));
+        tinder.cmd.client.changeStatus(Status.game("with " + tinder.matches.size() + " matches"));
     }
 
     public String readFile(String path, Charset encoding) throws IOException {

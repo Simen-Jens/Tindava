@@ -1,4 +1,5 @@
 import org.json.JSONObject;
+import sx.blah.discord.util.EmbedBuilder;
 
 /**
  * Created by Simen (Scoop#8831) on 07.02.2017.
@@ -33,11 +34,22 @@ public class Update_Thread extends Thread {
                     toggle = false;
                     System.out.println("CRITICAL ERROR! UPDATE ERROR\n\n" + ex.toString());
                     try {
-                        cmd.cmd_messageDiscord((":skull_crossbones: well shit, <@109348691525058560> sucks at programming :skull_crossbones:\nupdate thread in danger, error message sent to server owner(" + cmd.client.getGuilds().get(0).getOwner().mention() + ")"), cmd.client.getGuilds().get(0).getChannelByID(cmd.settings.defaultChannels.split(" ")[0]), false, false);
-                        cmd.client.getGuilds().get(0).getOwner().getOrCreatePMChannel().sendMessage("yeah error and such and such\n" + ex.toString());
-                    } catch (Exception exF) {
-                        System.out.print("something very is very wrong... you're screwd.\n\n" + exF.toString());
+                        cmd.client.getChannelByID(cmd.settings.defaultChannels.split(" ")[0]).sendMessage("", new EmbedBuilder().
+                                withTitle("An error has occured").
+                                withDescription("Error fetching update, trying to relog").
+                                withColor(255, 204, 77).build(), false);
+
+                        cmd.cmd_reauth(true);
+                    } catch (Exception ex3){
+                        System.out.println("CRITICAL! NEED RESTART");
+                        ex3.printStackTrace();
+                        System.exit(1);
                     }
+                }
+                if(pulls%10 == 0){
+                    try {
+                        cmd.organizeChannels(cmd.client.getGuilds().get(0).getChannels());
+                    } catch (Exception ex){}
                 }
                 pulls++;
             }

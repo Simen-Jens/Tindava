@@ -19,10 +19,13 @@ public class CommandCentral extends Main{
     private String fb_token;
     public JSON_Interpreter interp;
     public Tinder_Object tndr;
-    public Postman pat;
-    private boolean chattoggle = true;
+    public Postman pat = new Postman();
+    FacebookLogin fblogin;
+    private boolean chattoggle = false;
     private Update_Thread updater = new Update_Thread(10000L, 10000L, this);
     public Swipe_Control swiper;
+    private Links linkController = new Links(this);
+    private Cleverbot cleverbot = new Cleverbot(this);
 
     /*
     Called upon when the bot is ready
@@ -31,201 +34,178 @@ public class CommandCentral extends Main{
     Creates a JSON_Interpreter for the Tinder_Object
      */
     public void initDone(){
-        tndr = new Tinder_Object(this, client.getGuilds().get(0));
-        interp = new JSON_Interpreter(tndr);
+        try {
+            tndr = new Tinder_Object(this, client.getGuilds().get(0));
+            interp = new JSON_Interpreter(tndr);
+            swiper = new Swipe_Control(interp, pat, this);
+            if(settings.autoLogin) {
+                cmd_reauth(false);
+            } else{
+                System.out.println("autologin false, login '\uD83D\uDD25 login`");
+            }
+        } catch (Exception ex){
+            ex.printStackTrace();
+            System.out.println("Failed to instantiate Tinder_Object, JSON_Interpreter and Swipe_Control.\nDo this manually with '\uD83D\uDD25 instance'");
+        }
     }
 
 
-    /*
-    Called upon whenever the bot registers a new message
-
-        1. Splits the message based on spaces.
-        2. Checks for prefix, either @Tindava or :fire:.
-            2a. Handels create client command.
-            2b. Handels my roles command.
-            2c. Handels supply id command, checks if it can create a Postman (will be done when both id and token is supplied).
-            2d. Handels supply token command, checks if it can create a Postman (will be done when both id and token is supplied).
-            2e. Handels supply xauth command, will outright create a Postman with empty facebook details (not needed).
-            2f. Handels purge command, a nasty for-loop... will eat all messages if used incorrectly! (would be wise to remove this, but it's just too useful).
-            2g. REDACTED (removed for now, I will get back to this one).
-            2h. Handels request update command, where the magic happens. If the paramter "!auth!" is sent and Postman is created it will try to login (generate a xauth-token)
-                If the login created a xauth-token or a xauth-token was supplied it will the read previous JSON data (if any) and generate a save state.
-                After the save state is generated it will start a new thread to request new updates from the Tinder server every ten seconds.
-            2i. Removes excess chat-channels (warning something is wrong in this metohd, I will get around to it).
-            2j. Handels chat toggle command, toggles whether or not messages will be sent to Tinder matches.
-            2k. Handels stop updates command, stops the update thread.
-            2l.
-            2m.
-     */
     public void interp(MessageReceivedEvent event) throws Exception{
         if(tndr == null){
             tndr = new Tinder_Object(this, client.getGuilds().get(0));
             interp = new JSON_Interpreter(tndr);
         }
 
-        // 1
         String[] message = event.getMessage().getContent().split(" ");
-        // 2
         if(message[0].equals("\uD83D\uDD25")){
-            // A    - create client
-            if(message[1].equals("create") && message[2].equals("channel")){
-                if(message.length != 6){
-                    cmd_messageDiscord("expected 3 paramters, got " + (message.length-3) + ". <name> <hookName> <hookImage>", event.getMessage().getChannel(), false, false);
-                    return;
-                }
-                cmd_createChannel(message[3], message[4], message[5], event.getMessage().getGuild());
-            }
-            // B    - my roles
-            else if(message[1].equals("my") && message[2].equals("roles")){
-                event.getMessage().delete();
+            if(message[1].equals("my") && message[2].equals("roles")){
                 cmd_getRoleID(event.getMessage().getGuild(), event.getMessage().getAuthor());
             }
-            // C    - supply id
+            //
             else if(message[1].equals("supply") && message[2].equals("id")){
-                if(message.length != 4){
-                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <id>", event.getMessage().getChannel(), false, false);
-                    return;
-                }
-                fb_id = message[3];
-                if(fb_token != null && fb_id != null){
-                    pat = new Postman(fb_token, fb_id);
-                    swiper = new Swipe_Control(interp, pat, this);
-                }
-                event.getMessage().addReaction("\ud83d\udc4c");
-                //cmd_messageDiscord((":ok_hand: Facebook ID set to " + fb_id), event.getMessage().getChannel(), false, false);
+                cmd_supply_info(message[3], "id");
+                event.getMessage().addReaction("\ud83d\udc9c");
             }
-            // D    - supply token
-            else if(message[1].equals("supply") && message[2].equals("token")){
-                if(message.length != 4){
-                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <token>", event.getMessage().getChannel(), false, false);
-                    return;
-                }
-                fb_token = message[3];
-                if(fb_token != null && fb_id != null){
-                    pat = new Postman(fb_token, fb_id);
-                    swiper = new Swipe_Control(interp, pat, this);
-                }
-                event.getMessage().addReaction("\ud83d\udc4c");
-                //cmd_messageDiscord((":ok_hand: Facebook Token set to " + fb_token), event.getMessage().getChannel(), false, false);
+            //
+            else if(message[1].equals("supply") && message[2].equals("auth_token")){
+                cmd_supply_info(message[3], "oauth2");
+                event.getMessage().addReaction("\ud83d\udc9c");
             }
-            // E    - supply xauth
+            //
             else if(message[1].equals("supply") && message[2].equals("xauth")){
-                if(message.length != 4){
-                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <xauth>", event.getMessage().getChannel(), false, false);
-                    return;
-                }
-                pat = new Postman(null, null);
-                pat.xauth = message[3];
-                swiper = new Swipe_Control(interp, pat, this);
-                event.getMessage().addReaction("\ud83d\udc4c");
+                cmd_supply_info(message[3], "xauth");
+                event.getMessage().addReaction("\ud83d\udc9c");
             }
-            // F    - purge
+            //
+            else if(message[1].equals("facebook") && message[2].equals("email")){
+                cmd_supply_info(message[3], "email");
+                event.getMessage().addReaction("\ud83d\udc9c");
+            }
+            //
+            else if(message[1].equals("facebook") && message[2].equals("password")){
+                cmd_supply_info(message[3], "password");
+                event.getMessage().addReaction("\ud83d\udc9c");
+            }
+            //
             else if(message[1].equals("purge")){
-                if(message.length != 3){
-                    cmd_messageDiscord("expected 1 paramters, got " + (message.length-3) + ". <amount to delete>", event.getMessage().getChannel(), false, false);
-                    return;
-                }
                 cmd_purge(event, Integer.parseInt(message[2]));
             }
-            // G    - unmatch
-            else if (message[1].equals("unmatch")) {
-                for(int i = 0; i < tndr.matches.size(); i++){
-                    if(tndr.matches.get(i).myChannel == event.getMessage().getChannel()){
-                        tndr.matches.get(i).unmatch();
-                        return;
-                    }
-                }
-                cmd_messageDiscord("Can't delete this match", event.getMessage().getChannel(), false, false);
+            //
+            else if(message[1].equals("unmatch")){
+                cmd_unmatch(event.getMessage().getChannel());
             }
-            // H    - request update
-            else {
-                if (message[1].equals("request") && message[2].equals("update")) {
-                    if (message.length != 4) {
-                        cmd_messageDiscord("expected 1 paramters, got " + (message.length - 3) + ". <json>", event.getMessage().getChannel(), false, false);
-                        return;
-                    }
-                    if (message[3].equals("!auth!")) {
-                        System.out.println("SENT FOR");
-                        if (pat != null) {
-                            cmd_messageDiscord((pat.auth() ? "login success" : pat.xauth != null ? "xauth token supplied, skipping login" : "login failed"), event.getMessage().getChannel(), false, false);
+            //
+            else if(message[1].equals("remove") && message[2].equals("chats")){
+                cmd_removeChats(event);
+            }
+            //
+            else if(message[1].equals("toggle") && message[2].equals("chat")){
+                chattoggle = !chattoggle;
+                client.getChannelByID(settings.defaultChannels.split(" ")[0]).sendMessage(chattoggle ? "\ud83d\udd35 chat is now enabled" : "\ud83d\udd34 chat is now disabled");
+            }
+            //
+            else if(message[1].equals("toggle") && message[2].equals("updates")){
+                updater.toggle = !updater.toggle;
+                client.getChannelByID(settings.defaultChannels.split(" ")[0]).sendMessage(updater.toggle ? "\ud83d\udd35 thread is now enabled" : "\ud83d\udd34 thread is now disabled");
+            }
+            //
+            else if(message[1].equals("swipe") && message[2].equals("all")){
+                swiper.swipeAll();
+            }
+            //
+            else if(message[1].equals("organize")){
+                event.getMessage().addReaction("\ud83d\udc9c");
+                organizeChannels(event.getMessage().getGuild().getChannels());
+            }
+            //
+            else if(message[1].equals("unmatch") && message[2].equals("all")){
+                boolean togPrevState = updater.toggle;
+                updater.toggle = false;
+                swiper.unmatchAll();
+                event.getMessage().addReaction("\ud83d\udc9c");
+                wait(5000);
+                event.getMessage().addReaction("\ud83c\udd97");
+                updater.toggle = togPrevState;
+            }
+            //
+            else if(message[1].equals("request") && message[2].equals("update")){
+                if(message[3].equals("!auth!")){
+                    cmd_reauth(false);
+                } else{
+                  interp.updateTinder(message[3]);
+                }
+            }
+            //
+            else if(message[1].equals("set") && message[2].equals("address")){
+                if(isJSONnull(settings.googleKey)){
+                    System.out.println("No google API key found! use 'set lat' & 'set lon' instead");
+                    event.getMessage().addReaction("\u274c");
+                } else {
+                    JSONObject mapsAdrs = new JSONObject(pat.handleData("https://maps.googleapis.com/maps/api/geocode/json?address=" + event.getMessage().getContent().substring(13).replace(" ", "+") + "&key=" + settings.googleKey, "GET", new JSONObject()));
+                    mapsAdrs = mapsAdrs.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location");
+                    cmd_changeLocation(mapsAdrs.getString("lat"), mapsAdrs.getString("lng"), event.getMessage());
+                }
+            }
+            //
+            else if(message[1].equals("instance")){
+                settings.autoLogin = true;
+                initDone();;
+            }
+            //
+            else if(message[1].equals("link")){
+                if(settings.defaultChannels.contains(event.getMessage().getChannel().getID())){
+                    event.getMessage().addReaction("\u274c");
+                } else {
+                    cmd_link(event.getMessage().getChannel());
+                    event.getMessage().addReaction("\ud83d\udd17");
+                }
+            }
+            //
+            else if(message[1].equals("cleverbot")){
+                if(!isJSONnull(settings.cleverbotKey)) {
+                    if (settings.defaultChannels.contains(event.getMessage().getChannel().getID())) {
+                        event.getMessage().addReaction("\u274c");
+                    } else {
+                        if (cmd_cleverbot(event.getMessage().getChannel())) {
+                            event.getMessage().addReaction("\ud83d\udcbb");
                         } else {
-                            cmd_messageDiscord(":postal_horn: Missing postman, supply bot with a love letter :love_letter: (facebook token + id or a tinder xauth-token)", event.getMessage().getChannel(), false, false);
-                            return;
+                            event.getMessage().addReaction("\u274c");
                         }
-                        if (pat.xauth != null) {
-                            // login a-ok
-                            interp.updateTinderFromFile();
-                            updater.start();
-                        }
-                    } else {
-                        interp.updateTinder(message[3]);
                     }
-                }
-                // I    - remove chats
-                else if (message[1].equals("remove") && message[2].equals("chats")) {
-                    cmd_removeChats(event);
-                }
-                // J    - toggle chat
-                else if (message[1].equals("toggle") && message[2].equals("chat")) {
-                    if (event.getMessage().getAuthor().getID().equals(event.getMessage().getGuild().getOwnerID())) {
-                        chattoggle = !chattoggle;
-                        cmd_messageDiscord((chattoggle ? ":negative_squared_cross_mark: chat is now disabled" : ":white_check_mark: chat is now enabled"), event.getMessage().getChannel(), false, false);
-                    } else {
-                        cmd_messageDiscord(("only server owner can toggle chat"), event.getMessage().getChannel(), false, false);
-                    }
-                }
-                // K    - stops the update thread
-                else if (message[1].equals("toggle") && message[2].equals("updates")) {
-                    updater.toggle = !updater.toggle;
-                    event.getMessage().addReaction("\u2714");
-                    cmd_messageDiscord((":ok_hand: update thread `runn = " + updater.toggle + "`"), event.getMessage().getChannel(), false, false);
-                }
-                // L    - temp method to disable alerts for your own id
-                else if (message[1].equals("t_o_alert")) {
-                    tndr.alertME = false;
-                    event.getMessage().addReaction("\ud83d\udc4c");
-                }
-                // M    - requests recommendations from Tinder and swipes right on all of them
-                else if (message[1].equals("swipe") && message[2].equals("all")) {
-                    if (swiper != null) {
-                        swiper.swipeAll();
-                    } else {
-                        cmd_messageDiscord(("need to login :broken_heart:"), event.getMessage().getChannel(), false, false);
-                    }
-                } else if (message[1].equals("organize")){
-                    organizeChannels(client.getGuilds().get(0).getChannels());
-                } else if (message[1].equals("unmatch") && message[2].equals("all")){
-                    swiper.unmatchAll();
-                } else if (message[1].equals("test")){
-                    swiper.postRecom();
+                } else{
+                    System.out.println("No cleverbot API key detected");
+                    event.getMessage().addReaction("\u274c");
                 }
             }
-        }
-        // 3    - the block that controls messages that does not have a prefix i.e messages that are meant for matches
-        else if((!settings.defaultChannels.contains(event.getMessage().getChannel().getID()))) {
-            if (!event.getMessage().getChannel().isPrivate()) {
-                if (!event.getMessage().getAuthor().isBot()) {
-                    if (!chattoggle) {
-            /*
-                "Guard-function" makes it so that only people with a certain roleID will be able to actually send messages to Tinder matches
-                "is this really necessary?? I want everyone to send messages :(".. If you don't have this every match will receive a duplicate of their own
-                message. Why? Webhooks WILL trigger a MessageReceivedEvent just like any other user...
-             */
-                        boolean doorman = false;
-                        for (int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++) {
-                            if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals(settings.messageRole)) {
-                                doorman = true;
-                                break;
+            //
+            else if(message[1].equals("update") && message[2].equals("settings")){
+                event.getMessage().addReaction("\ud83d\udc9c");
+                settings = new Settings();
+            }
+            //
+            else if(message[1].equals("login")){
+                event.getMessage().addReaction("\ud83d\udc9c");
+                cmd_reauth(false);
+            }
+        } else{
+            if(!settings.defaultChannels.contains(event.getMessage().getChannel().getID())){
+                if(!event.getMessage().getChannel().isPrivate()){
+                    if(!event.getMessage().getAuthor().isBot()){
+                        if(chattoggle){
+                            /*
+                            "Guard-function" makes it so that only people with a certain roleID will be able to actually send messages to Tinder matches
+                            "is this really necessary?? I want everyone to send messages :(".. If you don't have this every match will receive a duplicate of their own
+                            message. Why? Webhooks WILL trigger a MessageReceivedEvent just like any other user...
+                            */
+                            boolean doorman = false;
+                            for (int i = 0; i < event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).size(); i++) {
+                                if (event.getMessage().getAuthor().getRolesForGuild(event.getMessage().getGuild()).get(i).getID().equals(settings.messageRole)) {
+                                    doorman = true;
+                                    break;
+                                }
                             }
-                        }
 
-            /*
-                If it got past the bouncer and the bot as sufficient access to Tinder (e.i has a xauth-token)
-                go ahead and send that message (uses gifIntegrator from JSON_Interpreter to generate a giphy if
-                message has prefix ":gif:" followed by a giphy link).
-             */
-                        if (pat != null && doorman) {
-                            if (pat.xauth != null) {
+                            if(doorman){
                                 String matchidFmsg = "";
                                 for (int i = 0; i < tndr.matches.size(); i++) {
                                     if (tndr.matches.get(i).myChannel.getID().equals(event.getMessage().getChannel().getID())) {
@@ -238,72 +218,128 @@ public class CommandCentral extends Main{
                                 return;
                             }
                         }
+                        if(!event.getMessage().getAuthor().isBot())event.getMessage().addReaction("\u274c");
                     }
-                    event.getMessage().addReaction("\u274c");
+                }
+                if(event.getMessage().getChannel().isPrivate()){
+                    event.getMessage().addReaction("\u2754");
                 }
             }
-            if(event.getMessage().getChannel().isPrivate()){
-                event.getMessage().addReaction("\u2754");
-            }
         }
-        //speeds up pullrate
         client.changeStatus(Status.game("with " + tndr.matches.size() + " matches"));
         updater.pulls = 0;
     }
 
-    public void organizeChannels(List<IChannel> channels) throws Exception{
-        System.out.print("Starting organize\nClient nodes sorted - .");
-        IChannel t;
-        int i, max = channels.size() -1;
-        for (int k = 0 ; k < max; k++) {
-            System.out.print(".");
-            if (channels.get(k).getName().compareTo(channels.get(k+1).getName()) > 0) {
-                t = channels.get(k+1);
-                i = k;
-
-                do{
-                    channels.remove(i+1);
-                    channels.add(i+1, channels.get(i));
-                    i--;
-                } while (i >= 0 && channels.get(i).getName().compareTo(t.getName()) > 0);
-                channels.remove(i+1);
-                channels.add(i+1, t);
+    public boolean cmd_cleverbot(IChannel matchChannel) throws Exception{
+        for(int i = 0; i < tndr.matches.size(); i++){
+            if(tndr.matches.get(i).myChannel == matchChannel){
+                cleverbot.attachClever(tndr.matches.get(i));
+                return (tndr.matches.get(i).cleverAI != null);
             }
         }
-        System.out.print("\nServer nodes sorted - ");
-        for(int u = 0; u < channels.size(); u++){
-            System.out.print(".");
-            channels.get(u).changePosition(u);
-        }
-
-        for(int u = settings.defaultChannels.split(" ").length-1; u >= 0 ; u--){
-            client.getChannelByID(settings.defaultChannels.split(" ")[u]).changePosition(-1);
-        }
-        System.out.println("\nDone sorting matches");
+        return false;
     }
 
-    public EmbedObject unmatchMessageObject(String name, String bio, int age, String image){
-        return new EmbedBuilder().
-                withAuthorName(name).
-                appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
-                withImage(image).
-                withThumbnail(settings.unMatchThumb).
-                /*withThumbnail("http://emojipedia-us.s3.amazonaws.com/cache/51/3a/513a734baf098ead6eb961f8d4092fc3.png").
-                withColor(213, 90, 112).*/
-                withColor(settings.unMatchColor).
-                build();
+    public void cmd_link(IChannel matchChannel) throws Exception{
+        for(int i = 0; i < tndr.matches.size(); i++){
+            if(tndr.matches.get(i).myChannel == matchChannel){
+                linkController.setLink(tndr.matches.get(i));
+                return;
+            }
+        }
     }
 
-    public EmbedObject buildMatchMessage(String name, String bio, int age, boolean superlike, String image){
-        return new EmbedBuilder().
-                withAuthorName(name).
-                appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
-                withImage(image).
-                withThumbnail(superlike ? settings.superMatchThumb : settings.defaultMatchThumb).
-                /*withThumbnail(superlike ? "http://pre01.deviantart.net/db85/th/pre/i/2016/295/b/0/tinder_super_like_star_by_topher147-dalwd0y.png" : "http://emojipedia-us.s3.amazonaws.com/cache/16/22/1622b595a25ee401f56aa047cd4520eb.png").
-                withColor((superlike ? 1 : 120), (superlike ? 182 : 177), (superlike ? 203 : 89))*/
-                withColor(superlike ? settings.superMatchColor : settings.defaultMatchColor).
-                build();
+    public void cmd_changeLocation(String lat, String lon, IMessage caller) throws Exception{
+        JSONObject loc = new JSONObject();
+        loc.put("lat", lat);
+        loc.put("lon", lon);
+        String awnser = pat.handleData("https://api.gotinder.com/user/ping", "POST", loc);
+        if(awnser.equals("{\"status\":200}")){
+            caller.addReaction("\u2708");
+        } else{
+            caller.addReaction("\u203d");
+        }
+    }
+
+    public void cmd_unmatch(IChannel matchChannel) throws Exception{
+        for(int i = 0; i < tndr.matches.size(); i++){
+            if(tndr.matches.get(i).myChannel == matchChannel){
+                tndr.matches.get(i).unmatch();
+                return;
+            }
+        }
+    }
+
+    public void cmd_reauth(boolean reauth){
+        if(!isJSONnull(settings.xauth)){
+            System.out.println(settings.xauth);
+            pat.xauth = settings.xauth;
+        }
+        //
+        else if(!isJSONnull(settings.facebook_id) && !isJSONnull(settings.facebook_token)){
+            pat.facebookID = settings.facebook_id;
+            pat.facebookToken = settings.facebook_token;
+        }
+        //
+        else if(!isJSONnull(settings.facebook_email) && !isJSONnull(settings.facebook_password) && !isJSONnull(settings.facebook_id)){
+            fblogin = new FacebookLogin(settings.facebook_email, settings.facebook_password, settings.facebook_id, this);
+            try {
+                client.getChannelByID(settings.defaultChannels.split(" ")[0]).sendMessage("", new EmbedBuilder().
+                        withAuthorName("Facebook").
+                        withAuthorIcon("https://images.seeklogo.net/2016/09/facebook-icon-preview.png").
+                        withTitle("Facebook credentials found").
+                        withDescription("logging in").
+                        withColor(41,83,150).build(), false);
+            } catch (Exception ex){
+                ex.printStackTrace();
+            }
+            pat.facebookID = settings.facebook_id;
+            pat.facebookToken = fblogin.generateNewOauth();
+        }
+        // none of the above
+        else{
+            System.out.println("no form for credentials found\nfill out settings.json or supply with supply command");
+            return;
+        }
+
+        try{
+            cmd_login(reauth);
+        } catch (Exception ex){}
+    }
+
+    public void cmd_login(boolean reauth) throws Exception{
+        boolean succ = pat.auth();
+        try{
+            IMessage last = client.getChannelByID(settings.defaultChannels.split(" ")[0]).getMessages().get(0);
+            if(last.getEmbedded().get(0).getDescription().equals("logging in")){
+                last.edit("", new EmbedBuilder().
+                        withAuthorName("Facebook").
+                        withAuthorIcon(succ ? "http://i.imgur.com/mSl8apU.png" : "http://i.imgur.com/K5s3uzO.png").
+                        withTitle("Facebook credentials found").
+                        withDescription(succ ? "login success" : "login failed").
+                        withColor(succ ? 76 : 244, succ ? 175 : 67, succ ? 80 : 54).build());
+            }
+        } catch (Exception ex){
+            cmd_messageDiscord((pat.auth() ? "login success" : pat.xauth != null ? "xauth token supplied, skipping login" : "login failed"), client.getChannelByID(settings.defaultChannels.split(" ")[0]), false, false);
+        }
+        if(pat.xauth != null && succ && !reauth){
+            interp.updateTinderFromFile();
+            updater.start();
+        } else if(reauth && pat.xauth != null && succ){
+            updater.toggle = true;
+        }
+    }
+
+    public void cmd_supply_info(String info, String type){
+        if(type.equals("id")){
+            settings.facebook_id = info;
+        } else if(type.equals("oauth2")){
+            settings.facebook_token = info;
+        } else if(type.equals("xauth")){
+            settings.xauth = info;
+        } else if(type.equals("email")){
+
+        }
     }
 
     public boolean cmd_removeChats(MessageReceivedEvent event) throws Exception{
@@ -389,6 +425,17 @@ public class CommandCentral extends Main{
         cmd_messageDiscord(build, user.getOrCreatePMChannel(), false, false);
     }
 
+
+
+
+
+
+
+
+
+
+
+
     public String sanitize(String sIn) throws Exception{
         String[] tbNom = sIn.split("");
         String[] illgChar = "ç,æ,œ,á,é,í,ó,ú,à,è,ì,ò,ù,ä,ë,ï,ö,ü,ÿ,â,ê,î,ô,û,å,ø,Ø,Å,Á,À,Â,Ä,È,É,Ê,Ë,Í,Î,Ï,Ì,Ò,Ó,Ô,Ö,Ú,Ù,Û,Ü,Ÿ,Ç,Æ,Œ".split(",");
@@ -408,5 +455,61 @@ public class CommandCentral extends Main{
         }
 
         return Normalizer.normalize(builder.toString(), Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
+    }
+
+    public void organizeChannels(List<IChannel> channels) throws Exception{
+        System.out.print("Starting organize\nClient nodes sorted - .");
+        IChannel t;
+        int i, max = channels.size() -1;
+        for (int k = 0 ; k < max; k++) {
+            System.out.print(".");
+            if (channels.get(k).getName().compareTo(channels.get(k+1).getName()) > 0) {
+                t = channels.get(k+1);
+                i = k;
+
+                do{
+                    channels.remove(i+1);
+                    channels.add(i+1, channels.get(i));
+                    i--;
+                } while (i >= 0 && channels.get(i).getName().compareTo(t.getName()) > 0);
+                channels.remove(i+1);
+                channels.add(i+1, t);
+            }
+        }
+        System.out.print("\nServer nodes sorted - ");
+        for(int u = 0; u < channels.size(); u++){
+            System.out.print(".");
+            channels.get(u).changePosition(u);
+        }
+
+        for(int u = settings.defaultChannels.split(" ").length-1; u >= 0 ; u--){
+            client.getChannelByID(settings.defaultChannels.split(" ")[u]).changePosition(-1);
+        }
+        System.out.println("\nDone sorting matches");
+    }
+
+    public EmbedObject unmatchMessageObject(String name, String bio, int age, String image){
+        return new EmbedBuilder().
+                withAuthorName(name).
+                appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
+                withImage(image).
+                withThumbnail(settings.unMatchThumb).
+                withColor(settings.unMatchColor).
+                build();
+    }
+
+    public EmbedObject buildMatchMessage(String name, String bio, int age, boolean superlike, String image, String spotify){
+        EmbedBuilder tmp = new EmbedBuilder();
+        tmp.withAuthorName(name).
+                appendField(String.valueOf(age), bio.equals("") ? "{EMPTY BIO}" : bio, false).
+                withImage(image).
+                withThumbnail(superlike ? settings.superMatchThumb : settings.defaultMatchThumb).
+                withColor(superlike ? settings.superMatchColor : settings.defaultMatchColor);
+        if(spotify != null)tmp.withFooterText(spotify).withFooterIcon("http://i.imgur.com/uI8QXiQ.png");
+        return tmp.build();
+    }
+
+    public boolean isJSONnull(String json){
+        return json.equals("null");
     }
 }
