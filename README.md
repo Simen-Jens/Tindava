@@ -1,4 +1,4 @@
-<img align="right" src="http://i.imgur.com/V3pKOwS.png" height="200" width="200"/>
+<img align="right" src="http://i.imgur.com/mjcs71U.png" height="300" width="300"/>
 
 # Tindava ![TravisCI](https://travis-ci.org/Simen-Jens/Tindava.svg?branch=master)
 Tinder bot controlled through a Discord server<br />
@@ -107,9 +107,11 @@ All commands can be invoked by 🔥(`:fire:`) as a prefix
 `🔥 supply xauth <tinder xauth-token>`<br />
 *allows you to skip supplying facebook id and facebook auth_token*
 
-`🔥 request update <full json data | !auth!>`<br />
-*will read the given json data (see <a href="#JSON-data-format">json data format</a> for more info) and create messages / matches appropriately. If supplied with `!auth!` instead it will use the facebook credentials / xauth to pull json directly from tinder*<br />
-<sub>__THIS IS HOW YOU "START" THE BOT__</sub>
+`🔥 facebook email <email>`<br />
+*supplies the bot with attached email for Tinder-account's Facebook account.*
+
+`🔥 facebook password <password>`<br />
+~~*supplies the bot with attached password for Tinder-account's Facebook account. *~~*disabled for safety, use settings.json instead*
 
 `🔥 purge <number>`<br />
 *deletes messages in the chat based on number given*
@@ -126,10 +128,6 @@ All commands can be invoked by 🔥(`:fire:`) as a prefix
 `🔥 toggle updates`<br />
 *toggles the update thread off/on*
 
-~~`🔥 t_o_alert`<br />~~
-~~*turn off alert, just mutes messages from yourself, use this command if you find that the bot duplicates your messages*~~<br />
-<sub>not needed anymore (still usable, should you experience issues)</sub>
-
 `🔥 swipe all`<br />
 *gets all recommendations from Tinder and swipes right, returns the amount of people swiped and how many swipes are left*
 
@@ -138,6 +136,27 @@ All commands can be invoked by 🔥(`:fire:`) as a prefix
 
 `🔥 unmatch all`<br />
 *removes all matches for the Tinder account*
+
+`🔥 request update <json>`<br />
+*allows you to send pre-defined json data*
+
+`🔥 set address <any place on earth>`<br />
+*request lat and lon from Google Maps and updates the position for your Tinder account*
+
+`🔥 instance`<br />
+*re-instances the bot should this be needed (becomes relevant if there are a lot of channels on a guild, Discord4J seems to have some trouble generating data on these channels within the required time)*
+
+`🔥 link`<br />
+*send in a match-channel to link it up with the next match-channel you send this in (only two and two channels can be linked together)*
+
+`🔥 cleverbot`<br />
+*links the channel up to cleverbot (cannot be linked with another channel at the same time)*
+
+`🔥 update settings`<br />
+*re-reads the settings.json file*
+
+`🔥 login`<br />
+*tries to log the bot into Tinder (if successful this will also start the bot)*
 
 
 # JSON data format
