@@ -57,12 +57,12 @@ The settings.json allows you to set certain filters for which matches to display
 		""
 	],
 	"messenger_role": "",
-	"hard_banned_users": [],
+	"hard_banned_users": [""],
 	"system_color": "#ffffff",
 
 
-	"exclude_matches_with_name": [],
-	"exclude_first_int_matches": 72,
+	"exclude_matches_with_name": [""],
+	"exclude_first_int_matches": 0,
 	"exclude_last_int_matches": 0,
 
 
