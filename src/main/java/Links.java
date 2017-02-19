@@ -14,7 +14,8 @@ import static java.lang.Thread.sleep;
  */
 public class Links {
     public class Symbiotic_Link {
-        private Tinder_Object.Match linkedA, linkedB;
+        private Tinder_Object.Match linkedA;
+        private Tinder_Object.Match linkedB;
         public IChannel linkChannel;
         public Symbiotic_Link(Tinder_Object.Match linkedA, Tinder_Object.Match linkedB, IChannel linkChannel){
             this.linkedA = linkedA;
@@ -26,12 +27,12 @@ public class Links {
         }
 
         public IMessage linkMessage(String message, Tinder_Object.Match from) throws Exception{
-            if(from == linkedA){
+            if(from.matchID.equals(linkedA.matchID)){
                 //send to b
                 linkedB.sendMessage(message);
                 //display from a
                 linkMaskedmessage(message, linkChannel, linkedA.name);
-            } else if(from == linkedB){
+            } else if(from.matchID.equals(linkedB.matchID)){
                 //send to a
                 linkedA.sendMessage(message);
                 //display from b
@@ -63,22 +64,27 @@ public class Links {
                 } else if (subjectB == null) {
                     subjectB = matchToLink;
                 }
-                EmbedBuilder tmp = new EmbedBuilder();
-                tmp.withAuthorIcon("http://www.hey.fr/fun/emoji/twitter/en/icon/twitter/577-emoji_twitter_link_symbol.png");
-                tmp.withAuthorName("New symbiotic link");
-                tmp.withDescription("All messages will be sendt between these two matches:\n");
-                tmp.appendField(subjectA.name, subjectA.myChannel.mention(), true);
-                tmp.appendField(subjectB.name, subjectB.myChannel.mention(), true);
-                tmp.withColor(cmd.settings.systemColor);
-                if (subjectA != null & subjectB != null) {
-                    links.add(new Symbiotic_Link(subjectA, subjectB, createLinkedChannel(subjectA, subjectB)));
-                }
-                tmp.withFooterText("New channel: " + "link_" + cmd.sanitize(subjectA.name) + "-" + cmd.sanitize(subjectB.name));
-                tmp.withFooterIcon("http://emojipedia-us.s3.amazonaws.com/cache/02/d6/02d6756a2f66cf4aef9c6502b0bc7fce.png");
+                if(subjectA != null && subjectB != null) {
+                    EmbedBuilder tmp = new EmbedBuilder();
+                    tmp.withAuthorIcon("http://www.hey.fr/fun/emoji/twitter/en/icon/twitter/577-emoji_twitter_link_symbol.png");
+                    tmp.withAuthorName("New symbiotic link");
+                    tmp.withDescription("All messages will be sendt between these two matches:\n");
+                    tmp.appendField(subjectA.name, subjectA.myChannel.mention(), true);
+                    tmp.appendField(subjectB.name, subjectB.myChannel.mention(), true);
+                    tmp.withColor(cmd.settings.systemColor);
+                    if (subjectA != null & subjectB != null) {
+                        links.add(new Symbiotic_Link(subjectA, subjectB, createLinkedChannel(subjectA, subjectB)));
+                    }
+                    tmp.withFooterText("New channel: " + "link_" + cmd.sanitize(subjectA.name) + "-" + cmd.sanitize(subjectB.name));
+                    tmp.withFooterIcon("http://emojipedia-us.s3.amazonaws.com/cache/02/d6/02d6756a2f66cf4aef9c6502b0bc7fce.png");
 
-                subjectA.myChannel.sendMessage("", tmp.build(), false);
-                subjectB.myChannel.sendMessage("", tmp.build(), false);
-                return matchToLink;
+                    subjectA.myChannel.sendMessage("", tmp.build(), false);
+                    subjectB.myChannel.sendMessage("", tmp.build(), false);
+
+                    subjectA = null;
+                    subjectB = null;
+                    return matchToLink;
+                }
             } else{
                 System.out.println("This match is linked with Cleverbot");
                 return null;
@@ -101,10 +107,16 @@ public class Links {
     }
 
     public void linkMaskedmessage(String message, IChannel channel, String senderName) throws Exception{
-        String url="https://discordapp.com/api/webhooks/" + channel.getWebhooksByName(senderName).get(0).getID() + "/" + channel.getWebhooksByName(senderName).get(0).getToken();
-        JSONObject msg = new JSONObject();
-        msg.put("content",message);
-        cmd.pat.handleData(url, "POST", msg);
-        sleep(100); //gives the webhook time to post
+        System.out.println("called to send masked message for links, from: " + senderName);
+        try {
+            System.out.println("webhooks with senderName: " + channel.getWebhooksByName(cmd.sanitize(senderName)).size());
+            String url = "https://discordapp.com/api/webhooks/" + channel.getWebhooksByName(cmd.sanitize(senderName)).get(0).getID() + "/" + channel.getWebhooksByName(cmd.sanitize(senderName)).get(0).getToken();
+            JSONObject msg = new JSONObject();
+            msg.put("content", message);
+            cmd.pat.handleData(url, "POST", msg);
+            sleep(100); //gives the webhook time to post
+        } catch (Exception ex){
+            ex.printStackTrace();
+        }
     }
 }

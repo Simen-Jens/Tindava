@@ -6,7 +6,6 @@ import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.Image;
 
 import java.text.Normalizer;
-import java.util.List;
 
 import static java.lang.Thread.sleep;
 
@@ -19,7 +18,7 @@ public class CommandCentral extends Main{
     private String fb_token;
     public JSON_Interpreter interp;
     public Tinder_Object tndr;
-    public Postman pat = new Postman();
+    public Postman pat = new Postman(this);
     FacebookLogin fblogin;
     private boolean chattoggle = false;
     private Update_Thread updater = new Update_Thread(10000L, 10000L, this);
@@ -115,7 +114,7 @@ public class CommandCentral extends Main{
             //
             else if(message[1].equals("organize")){
                 event.getMessage().addReaction("\ud83d\udc9c");
-                organizeChannels(event.getMessage().getGuild().getChannels());
+                organize();
             }
             //
             else if(message[1].equals("unmatch") && message[2].equals("all")){
@@ -214,7 +213,7 @@ public class CommandCentral extends Main{
                                 }
                                 pat.handleData(("https://api.gotinder.com/user/matches/" + matchidFmsg), "POST", interp.gifIntegrator(interp.stripCode(event.getMessage().getContent())));
                                 //event.getMessage().addReaction("\ud83d\udc8c");
-                                updater.pulls = 0;
+                                //updater.pulls = 0;
                                 return;
                             }
                         }
@@ -226,8 +225,6 @@ public class CommandCentral extends Main{
                 }
             }
         }
-        client.changeStatus(Status.game("with " + tndr.matches.size() + " matches"));
-        updater.pulls = 0;
     }
 
     public boolean cmd_cleverbot(IChannel matchChannel) throws Exception{
@@ -310,7 +307,7 @@ public class CommandCentral extends Main{
     public void cmd_login(boolean reauth) throws Exception{
         boolean succ = pat.auth();
         try{
-            IMessage last = client.getChannelByID(settings.defaultChannels.split(" ")[0]).getMessages().get(0);
+            IMessage last = myLastSent;
             if(last.getEmbedded().get(0).getDescription().equals("logging in")){
                 last.edit("", new EmbedBuilder().
                         withAuthorName("Facebook").
@@ -319,8 +316,10 @@ public class CommandCentral extends Main{
                         withDescription(succ ? "login success" : "login failed").
                         withColor(succ ? 76 : 244, succ ? 175 : 67, succ ? 80 : 54).build());
             }
+            if(!succ)return;
         } catch (Exception ex){
-            cmd_messageDiscord((pat.auth() ? "login success" : pat.xauth != null ? "xauth token supplied, skipping login" : "login failed"), client.getChannelByID(settings.defaultChannels.split(" ")[0]), false, false);
+            cmd_messageDiscord((succ ? "login success" : pat.xauth != null ? "xauth token supplied, skipping login" : "login failed"), client.getChannelByID(settings.defaultChannels.split(" ")[0]), false, false);
+            if(!succ)return;
         }
         if(pat.xauth != null && succ && !reauth){
             interp.updateTinderFromFile();
@@ -427,14 +426,9 @@ public class CommandCentral extends Main{
 
 
 
-
-
-
-
-
-
-
-
+    /*
+        non cmd methods
+     */
 
     public String sanitize(String sIn) throws Exception{
         String[] tbNom = sIn.split("");
@@ -456,6 +450,69 @@ public class CommandCentral extends Main{
 
         return Normalizer.normalize(builder.toString(), Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
     }
+
+    public void organize(){
+        System.out.println("!STARTING SORT! (O = no change, X = change, E = error)");
+        IChannel[] current = clientStructure();
+        IChannel[] sorted = clientSort(current);
+        finalSort(current, sorted, 0);
+        System.out.println("!DONE SORTING!\n\n");
+    }
+
+
+    public IChannel[] clientStructure(){
+        IChannel[] current = new IChannel[client.getGuilds().get(0).getChannels().size() - settings.defaultChannels.split(" ").length];
+        for(int i = 0; i < client.getGuilds().get(0).getChannels().size(); i++){
+            if(!settings.defaultChannels.contains(client.getGuilds().get(0).getChannels().get(i).getID())){
+                current[client.getGuilds().get(0).getChannels().get(i).getPosition()-settings.defaultChannels.split(" ").length] = client.getGuilds().get(0).getChannels().get(i);
+            }
+        }
+        return current;
+    }
+
+    public IChannel[] clientSort(IChannel[] current){
+        IChannel[] tmp = current.clone();
+        IChannel t;
+        int i, max = tmp.length -1;
+        for (int k = 0 ; k < max; k++) {
+            if (tmp[k].getName().compareTo(tmp[k+1].getName()) > 0) {
+                t = tmp[k+1];
+                i = k;
+
+                do{
+                    tmp[i+1] = tmp[i];
+                    i--;
+                } while (i >= 0 && tmp[i].getName().compareTo(t.getName()) > 0);
+                tmp[i+1] = t;
+            }
+        }
+        return tmp;
+    }
+
+    public void finalSort(IChannel[] current, IChannel[] sorted, int index){
+        for(int i = index; i < sorted.length; i++){
+            if(current[i].getID().equals(sorted[i].getID())){
+                //this is good
+                System.out.print("O");
+                //System.out.print(current[i].getName() + " == " + sorted[i].getName());
+            } else{
+                System.out.print("X");
+                //System.out.print(current[i].getName() + " != " + sorted[i].getName() + " || SOLVING || moving " + sorted[i].getName() + " to ");
+                try {
+                    sorted[i].changePosition(i + settings.defaultChannels.split(" ").length);
+                    finalSort(clientStructure(), sorted, i+1);
+                    return;
+                } catch (Exception ex){
+                    ex.printStackTrace();
+                }
+                System.out.print("E");
+
+            }
+        }
+        System.out.println("");
+    }
+
+/*  old sorting method, new one will hopefully be less intensive for Discord4J lib
 
     public void organizeChannels(List<IChannel> channels) throws Exception{
         System.out.print("Starting organize\nClient nodes sorted - .");
@@ -487,7 +544,7 @@ public class CommandCentral extends Main{
         }
         System.out.println("\nDone sorting matches");
     }
-
+*/
     public EmbedObject unmatchMessageObject(String name, String bio, int age, String image){
         return new EmbedBuilder().
                 withAuthorName(name).

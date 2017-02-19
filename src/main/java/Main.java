@@ -1,6 +1,7 @@
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
 
 /**
@@ -9,8 +10,11 @@ import sx.blah.discord.util.DiscordException;
 public class Main {
     public static IDiscordClient client; // The instance of the discord client.
     public static Settings settings = new Settings();
+    public static IMessage myLastSent;
+    public static String[] argsM;
 
     public static void main(String[] args) {
+        argsM = args;
         System.out.println(settings.defaultChannels);
         login(settings.botToken);
 

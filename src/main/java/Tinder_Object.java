@@ -108,9 +108,9 @@ public class Tinder_Object {
         }
 
         public void sendMessage(String s) throws Exception{
-            JSONObject msg = new JSONObject();
-            msg.put("message", s);
-            cmd.pat.handleData(("https://api.gotindaer.com/user/matches/" + matchID), "POST", msg);
+            //JSONObject msg = new JSONObject();
+            //msg.put("message", cmd.interp.gifIntegrator(cmd.interp.stripCode(s)));
+            cmd.pat.handleData(("https://api.gotinder.com/user/matches/" + matchID), "POST", cmd.interp.gifIntegrator(cmd.interp.stripCode(s)));
         }
 
         public Message addMessage(String messageID, String matchID, String to_matchID, String from_matchID, String messageContent, String sent_date, String created_date, String timestamp){
@@ -144,7 +144,7 @@ public class Tinder_Object {
                         try {
                             link.linkMessage(messageContent, this);
                         } catch (Exception ex){
-
+                            ex.printStackTrace();
                         }
                     }
                 } else {

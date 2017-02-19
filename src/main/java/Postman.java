@@ -14,6 +14,11 @@ public class Postman {
     public String facebookID;
     public String xauth;
     public String myID;
+    private CommandCentral cmd;
+
+    public Postman(CommandCentral cmd){
+        this.cmd = cmd;
+    }
 
 
     synchronized public String handleData(String url, String metohd, JSONObject data) throws Exception{
@@ -50,7 +55,7 @@ public class Postman {
             }
             br.close();
             //System.out.println(sb.toString());
-            System.out.println("JSON get - " + con.getResponseCode());
+            System.out.println("PAT " + metohd + " - " + con.getResponseCode() + " (" + url + ")");
         } else {
             System.out.println(con.getResponseMessage() + " - " + url);
         }
@@ -71,7 +76,7 @@ public class Postman {
             String s = handleData("https://api.gotinder.com/auth", "POST", tmp);
             if (s.contains("token")) xauth = new JSONObject(s).getString("token");
             if (s.contains("user")) myID = new JSONObject(s).getJSONObject("user").getString("_id");
-
+            cmd.tndr.myID = myID;
             //System.out.println(xauth);
             return s.contains("token");
         }

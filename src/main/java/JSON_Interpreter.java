@@ -24,7 +24,7 @@ public class JSON_Interpreter {
         tinder.cmd.client.changeStatus(Status.game("with previous cache"));
         System.out.println("reading cache");
         tinder.myID = tinder.cmd.pat.myID;
-        String empty = readFile("empty.json", StandardCharsets.UTF_8);
+        String empty = readFile(tinder.cmd.argsM[0], StandardCharsets.UTF_8);
         tinder.alert = false;
         updateTinder(empty);
         tinder.alert = true;
@@ -79,10 +79,10 @@ public class JSON_Interpreter {
     public JSONObject gifIntegrator(String message) throws Exception{
         JSONObject jssss = null;
         if(message.length() > 4){
-            if(message.substring(0, 5).equals(":gif:")){
+            if(message.contains("giphy.com/")){
                 jssss = new JSONObject();
-                jssss.put("message", message.substring(6));
-                String gifid = message.substring(6).replace("https://media.giphy.com/media/", "").replace("/giphy.gif", "");
+                jssss.put("message", message.substring(0));
+                String gifid = message.substring(0).replace("https://media.giphy.com/media/", "").replace("/giphy.gif", "");
                 jssss.put("gif_id", gifid);
                 jssss.put("type", "gif");
             } else {

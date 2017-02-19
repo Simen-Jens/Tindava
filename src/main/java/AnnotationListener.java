@@ -2,10 +2,12 @@ import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.events.MessageSendEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.TypingEvent;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.Status;
+import sx.blah.discord.util.EmbedBuilder;
 
 /**
  * Created by Simen (Scoop#8831) on 05.02.2017.
@@ -32,12 +34,26 @@ public class AnnotationListener extends Main {
 
         @EventSubscriber
         public void onMessageReceivedEvent(MessageReceivedEvent event) throws Exception {
-            cmd.interp(event);
+            if(event.getMessage().getAuthor() != event.getMessage().getGuild().getOwner() && settings.restrictNotifications && event.getMessage().getChannel().getID().equals(settings.defaultChannels.split(" ")[0])){ //message in notifications not allowed
+                EmbedBuilder tmp = new EmbedBuilder();
+                tmp.withAuthorName(event.getMessage().getAuthor().getName());
+                tmp.withAuthorIcon(event.getMessage().getAuthor().getAvatarURL());
+                tmp.withDescription(event.getMessage().getContent());
+                event.getMessage().getGuild().getChannelByID(settings.defaultChannels.split(" ")[1]).sendMessage(event.getMessage().getAuthor().mention() + " please use <#" + settings.defaultChannels.split(" ")[1] + "> instead", tmp.build(), false);
+                event.getMessage().delete();
+            } else{
+                cmd.interp(event);
+            }
         }
 
         @EventSubscriber
         public void onTypingEvent(TypingEvent event) throws Exception{
 
+        }
+
+        @EventSubscriber
+        public void onMessageSendEvent(MessageSendEvent event) throws Exception{
+            myLastSent = event.getMessage();
         }
     }
 }

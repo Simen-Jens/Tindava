@@ -27,10 +27,12 @@ public class Settings {
     public String empty_path;
     public int pullrate_min;
     public int pullrate_max;
+    public boolean chatEnabled;
 
     public String defaultChannels = "";
     public String messageRole;
     public Color systemColor;
+    public boolean restrictNotifications;
 
     public String excludeName;
     public int excludeBefore;
@@ -76,14 +78,16 @@ public class Settings {
             empty_path = setting.getString("empty_path");
             pullrate_min = setting.getInt("pullrate_min");
             pullrate_max = setting.getInt("pullrate_max");
+            chatEnabled = setting.getBoolean("chat_enabled");
 
             for(int i = 0; i < setting.getJSONArray("default_channels").length(); i++){
                 defaultChannels += setting.getJSONArray("default_channels").getString(i) + " ";
             }
             defaultChannels = defaultChannels.substring(0, defaultChannels.length()-1);
             messageRole = setting.getString("messenger_role");
-            systemColor = new Color(0,0,0).decode(setting.getString("system_color"));
+            restrictNotifications = setting.getBoolean("restrict_defaultchannel_0");
 
+            systemColor = new Color(0,0,0).decode(setting.getString("system_color"));
             for(int i = 0; i < setting.getJSONArray("exclude_matches_with_name").length(); i++){
                 excludeName += setting.getJSONArray("exclude_matches_with_name").getString(i) + " ";
             }
