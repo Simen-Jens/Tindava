@@ -3,6 +3,7 @@
 	"google_api_key": null,
 	"cleverbot_key": "",
 	"language": "en",
+	"chat_enabled": "true",
 
 	"facebook_email": "",
 	"facebook_password": "",
@@ -23,6 +24,7 @@
 	"default_channels": [
 		""
 	],
+	"restrict_defaultchannel_0": "true",
 	"messenger_role": "",
 	"hard_banned_users": [],
 	"system_color": "#ffffff",
